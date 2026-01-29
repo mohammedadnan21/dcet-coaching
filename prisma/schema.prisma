@@ -1,0 +1,227 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Role: ADMIN, TEACHER, STUDENT
+// UserStatus: PENDING, APPROVED, REJECTED
+// QuestionVisibility: PUBLIC, PRIVATE_ADMIN, PRIVATE_TEACHER
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String
+  password      String
+  role          String   @default("STUDENT")
+  status        String   @default("PENDING")
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  deviceSessions  DeviceSession[]
+  videos          Video[]         @relation("UploadedVideos")
+  hostMeetings    Meeting[]       @relation("HostMeetings")
+  questions       Question[]      @relation("AskedQuestions")
+  targetQuestions Question[]      @relation("TargetQuestions")
+  answers         Answer[]
+  testAttempts    TestAttempt[]
+  createdTests    MockTest[]      @relation("CreatedTests")
+  teacherSubjects TeacherSubject[]
+  chatMessages    ChatMessage[]
+}
+
+model DeviceSession {
+  id        String   @id @default(cuid())
+  userId    String
+  deviceId  String
+  token     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  videos    Video[]
+  mockTests MockTest[]
+  teachers  TeacherSubject[]
+}
+
+model TeacherSubject {
+  id        String   @id @default(cuid())
+  teacherId String
+  subjectId String
+  createdAt DateTime @default(now())
+
+  teacher User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId])
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  youtubeUrl  String
+  subjectId   String
+  uploadedBy  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject  Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  uploader User    @relation("UploadedVideos", fields: [uploadedBy], references: [id])
+}
+
+model Meeting {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  zoomLink     String
+  scheduledAt  DateTime
+  hostId       String
+  cancelled    Boolean  @default(false)
+  cancelReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  host User @relation("HostMeetings", fields: [hostId], references: [id])
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  content    String
+  askedById  String
+  targetId   String?
+  visibility String   @default("PUBLIC")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  askedBy User     @relation("AskedQuestions", fields: [askedById], references: [id], onDelete: Cascade)
+  target  User?    @relation("TargetQuestions", fields: [targetId], references: [id])
+  answers Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  content    String
+  questionId String
+  answeredBy String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerer User     @relation(fields: [answeredBy], references: [id])
+}
+
+model MockTest {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  createdBy   String
+  duration    Int
+  showRanking Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject   Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  creator   User          @relation("CreatedTests", fields: [createdBy], references: [id])
+  questions MCQuestion[]
+  attempts  TestAttempt[]
+}
+
+model MCQuestion {
+  id            String   @id @default(cuid())
+  testId        String
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption String
+  marks         Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  test    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers TestAnswer[]
+}
+
+model TestAttempt {
+  id          String    @id @default(cuid())
+  testId      String
+  userId      String
+  score       Int       @default(0)
+  totalMarks  Int       @default(0)
+  completed   Boolean   @default(false)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  test    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers TestAnswer[]
+
+  @@unique([testId, userId])
+}
+
+model TestAnswer {
+  id             String   @id @default(cuid())
+  attemptId      String
+  questionId     String
+  selectedOption String?
+  isCorrect      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question MCQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  isBot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MotivationQuote {
+  id        String   @id @default(cuid())
+  quote     String
+  author    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
