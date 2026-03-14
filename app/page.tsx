@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, memo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,9 @@ import {
   Globe,
   Cpu,
   Shield,
-  Zap,
-  CheckCircle,
+  Play,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 const motivationQuotes = [
@@ -65,6 +66,138 @@ const features = [
   { icon: Users, title: "Community", description: "Connect with fellow DCET aspirants" },
 ];
 
+// Memoized 3D Card Component for performance
+const Card3D = memo(function Card3D({ 
+  children, 
+  className = "",
+  intensity = 10 
+}: { 
+  children: React.ReactNode; 
+  className?: string;
+  intensity?: number;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>();
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current) return;
+      const card = cardRef.current;
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = (y - centerY) / intensity;
+      const rotateY = (centerX - x) / intensity;
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+  }, [intensity]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = "perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)";
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`transition-transform duration-200 ease-out will-change-transform ${className}`}
+      style={{ transformStyle: "preserve-3d" }}
+    >
+      {children}
+    </div>
+  );
+});
+
+// Memoized Feature Card for performance
+const FeatureCard = memo(function FeatureCard({ 
+  feature, 
+  index 
+}: { 
+  feature: typeof features[0]; 
+  index: number;
+}) {
+  return (
+    <Card3D intensity={15}>
+      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-shadow duration-300 h-full">
+        <CardContent className="p-6">
+          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-5">
+            <feature.icon className="w-7 h-7 text-blue-500" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+          <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+        </CardContent>
+      </Card>
+    </Card3D>
+  );
+});
+
+// Memoized Contact Card
+const ContactCard = memo(function ContactCard({ 
+  contact 
+}: { 
+  contact: { icon: any; title: string; value: string; href: string | null };
+}) {
+  return (
+    <Card3D intensity={20}>
+      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 text-center h-full">
+        <CardContent className="p-8">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
+            <contact.icon className="w-7 h-7 text-blue-500" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg mb-2">{contact.title}</h3>
+          {contact.href ? (
+            <a href={contact.href} className="text-blue-600 hover:text-blue-700 hover:underline text-sm">
+              {contact.value}
+            </a>
+          ) : (
+            <p className="text-gray-600 text-sm">{contact.value}</p>
+          )}
+        </CardContent>
+      </Card>
+    </Card3D>
+  );
+});
+
+// Memoized Stats Card
+const StatsCard = memo(function StatsCard({ 
+  item, 
+  index 
+}: { 
+  item: typeof achievements[0]; 
+  index: number;
+}) {
+  return (
+    <Card3D intensity={25}>
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center text-white border border-white/20 hover:bg-white/15 transition-colors">
+        <p className="text-4xl md:text-5xl font-bold mb-1">{item.number}</p>
+        <p className="text-blue-100 font-semibold">{item.label}</p>
+        <p className="text-blue-200/80 text-sm mt-1">{item.sublabel}</p>
+      </div>
+    </Card3D>
+  );
+});
+
 export default function LandingPage() {
   const [currentQuote, setCurrentQuote] = useState(0);
 
@@ -77,16 +210,16 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b">
+      {/* Navigation - Clean & Professional */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Logo size="md" />
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#about" className="text-gray-600 hover:text-blue-600 transition">About</a>
-              <a href="#features" className="text-gray-600 hover:text-blue-600 transition">Features</a>
-              <a href="#skills" className="text-gray-600 hover:text-blue-600 transition">Skills</a>
-              <a href="#contact" className="text-gray-600 hover:text-blue-600 transition">Contact</a>
+              <a href="#about" className="text-gray-600 hover:text-blue-600 transition font-medium">About</a>
+              <a href="#features" className="text-gray-600 hover:text-blue-600 transition font-medium">Features</a>
+              <a href="#skills" className="text-gray-600 hover:text-blue-600 transition font-medium">Skills</a>
+              <a href="#contact" className="text-gray-600 hover:text-blue-600 transition font-medium">Contact</a>
             </div>
             <div className="flex items-center space-x-3">
               <Link href="/login">
@@ -101,28 +234,30 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-blue-50 via-white to-amber-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-blue-50 via-white to-amber-50 relative overflow-hidden">
+        {/* Subtle Background Elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                  <Star className="w-3 h-3 mr-1" /> DCET Rank 48 | RVCE CSE
+                <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-0 px-4 py-1.5">
+                  <Star className="w-4 h-4 mr-1.5 fill-amber-500 text-amber-500" /> DCET Rank 48 | RVCE CSE
                 </Badge>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                   Crack DCET with{" "}
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Rank 48
-                  </span>{" "}
+                  <span className="text-blue-600">Rank 48</span>{" "}
                   Mentorship
                 </h1>
-                <p className="text-lg md:text-xl text-gray-600 max-w-xl">
+                <p className="text-lg md:text-xl text-gray-600 max-w-xl leading-relaxed">
                   Learn from Mohammed Adnan, who secured All-Karnataka Rank 48 in DCET and is now pursuing CSE at R.V. College of Engineering.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
                 <Link href="/register?role=student">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 h-12 px-8">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 h-12 px-8 shadow-lg shadow-blue-500/25">
                     <GraduationCap className="w-5 h-5 mr-2" />
                     Join as Student
                   </Button>
@@ -137,7 +272,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-8 pt-4">
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
                       {String.fromCharCode(64 + i)}
                     </div>
                   ))}
@@ -148,11 +283,11 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Founder Photo & Info */}
+            {/* Founder Photo with Subtle 3D */}
             <div className="relative">
-              <div className="relative mx-auto w-fit">
+              <Card3D intensity={30} className="relative mx-auto w-fit">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-amber-400 rounded-3xl blur-3xl opacity-20 scale-110" />
-                <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-2">
+                <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-2 shadow-2xl">
                   <Image
                     src="/founder.png"
                     alt="Mohammed Adnan - Founder"
@@ -160,10 +295,12 @@ export default function LandingPage() {
                     height={500}
                     className="rounded-2xl object-cover"
                     priority
+                    loading="eager"
                   />
                 </div>
-                {/* Floating Achievement Cards */}
-                <div className="absolute -left-8 top-1/4 bg-white rounded-xl shadow-xl p-3 animate-pulse">
+                
+                {/* Floating Cards - Subtle Animation */}
+                <div className="absolute -left-8 top-1/4 bg-white rounded-xl shadow-lg p-3 animate-float">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                       <Trophy className="w-5 h-5 text-amber-600" />
@@ -174,7 +311,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-                <div className="absolute -right-8 bottom-1/4 bg-white rounded-xl shadow-xl p-3">
+                
+                <div className="absolute -right-8 bottom-1/4 bg-white rounded-xl shadow-lg p-3 animate-float" style={{ animationDelay: "1s" }}>
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                       <Award className="w-5 h-5 text-green-600" />
@@ -185,34 +323,33 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card3D>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-gradient-to-r from-blue-600 to-blue-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* Stats Section - Clean 3D Glass Cards */}
+      <section className="py-14 bg-gradient-to-r from-blue-600 to-blue-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {achievements.map((item, index) => (
-              <div key={index} className="text-center text-white">
-                <p className="text-4xl md:text-5xl font-bold">{item.number}</p>
-                <p className="text-blue-100 font-medium">{item.label}</p>
-                <p className="text-blue-200 text-sm">{item.sublabel}</p>
-              </div>
+              <StatsCard key={index} item={item} index={index} />
             ))}
           </div>
         </div>
       </section>
 
       {/* Motivation Quote */}
-      <section className="py-8 bg-amber-50 border-y border-amber-100">
+      <section className="py-10 bg-gradient-to-r from-amber-50 to-orange-50 border-y border-amber-100">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-lg md:text-xl text-gray-700 italic">
+          <Sparkles className="w-6 h-6 text-amber-500 mx-auto mb-3" />
+          <p className="text-lg md:text-xl text-gray-700 italic leading-relaxed">
             "{motivationQuotes[currentQuote].quote}"
           </p>
-          <p className="mt-2 text-amber-700 font-medium">
+          <p className="mt-3 text-amber-700 font-semibold">
             — {motivationQuotes[currentQuote].author}
           </p>
         </div>
@@ -223,7 +360,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4 bg-blue-100 text-blue-800">About the Founder</Badge>
+              <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">About the Founder</Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 Mohammed Adnan
               </h2>
@@ -237,52 +374,51 @@ export default function LandingPage() {
                   Aiming higher, I prepared intensely for the DCET exam and secured an <strong>All-India 
                   Rank of 48</strong> across Karnataka and <strong>2nd Rank in Hassan district</strong>. 
                   This achievement opened the door for me to join one of the top engineering institutions 
-                  in Bengaluru — <strong>R.V. College of Engineering (RVCE)</strong> — where I shifted to 
-                  the Computer Science and Engineering (CSE) branch.
+                  in Bengaluru — <strong>R.V. College of Engineering (RVCE)</strong>.
                 </p>
                 <p>
-                  Transitioning from EEE to CSE was challenging, but I embraced it with confidence. In my 
-                  3rd semester, I scored <strong>9+ SGPA</strong>, and since then, I have maintained strong 
-                  academic performance with a current <strong>CGPA of 9.09</strong>.
-                </p>
-                <p>
-                  My journey of continuous learning and growth led me to secure a placement at 
+                  My journey of continuous learning and growth led me to secure a placement at
                   <strong> Red Hat</strong>, a renowned US-based technology company.
                 </p>
               </div>
             </div>
-            <div className="space-y-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Academic Journey</h3>
-                  <div className="space-y-4">
-                    {[
-                      { year: "SSLC", score: "91.52%", school: "CKS" },
-                      { year: "Diploma (EEE)", score: "9.8 CGPA", school: "Polytechnic" },
-                      { year: "DCET", score: "Rank 48", school: "All Karnataka" },
-                      { year: "B.E. (CSE)", score: "9.09 CGPA", school: "RVCE Bengaluru" },
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center justify-between py-2 border-b border-blue-200 last:border-0">
-                        <div>
-                          <p className="font-semibold text-gray-900">{item.year}</p>
-                          <p className="text-sm text-gray-600">{item.school}</p>
+            <div>
+              <Card3D intensity={20}>
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-blue-600" />
+                      Academic Journey
+                    </h3>
+                    <div className="space-y-4">
+                      {[
+                        { year: "SSLC", score: "91.52%", school: "CKS" },
+                        { year: "Diploma (EEE)", score: "9.8 CGPA", school: "Polytechnic" },
+                        { year: "DCET", score: "Rank 48", school: "All Karnataka" },
+                        { year: "B.E. (CSE)", score: "9.09 CGPA", school: "RVCE Bengaluru" },
+                      ].map((item, index) => (
+                        <div key={index} className="flex items-center justify-between py-2 border-b border-blue-200/50 last:border-0">
+                          <div>
+                            <p className="font-semibold text-gray-900">{item.year}</p>
+                            <p className="text-sm text-gray-600">{item.school}</p>
+                          </div>
+                          <Badge className="bg-blue-600 hover:bg-blue-600">{item.score}</Badge>
                         </div>
-                        <Badge className="bg-blue-600">{item.score}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Card3D>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - Clean 3D Cards */}
       <section id="features" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">Platform Features</Badge>
+            <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">Platform Features</Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Everything You Need to Succeed
             </h2>
@@ -292,15 +428,7 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                    <feature.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <FeatureCard key={index} feature={feature} index={index} />
             ))}
           </div>
         </div>
@@ -310,7 +438,7 @@ export default function LandingPage() {
       <section id="skills" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-amber-100 text-amber-800">Technical Expertise</Badge>
+            <Badge className="mb-4 bg-amber-100 text-amber-800 border-0">Technical Expertise</Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Skills & Competencies
             </h2>
@@ -320,20 +448,19 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {skills.map((skill, index) => (
-              <div
-                key={index}
-                className="group p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-lg shadow flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                    <skill.icon className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{skill.name}</p>
-                    <p className="text-xs text-gray-500">{skill.category}</p>
+              <Card3D key={index} intensity={25}>
+                <div className="group p-4 bg-gray-50 rounded-xl hover:bg-blue-50 hover:shadow-md transition-all cursor-pointer border border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                      <skill.icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{skill.name}</p>
+                      <p className="text-xs text-gray-500">{skill.category}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Card3D>
             ))}
           </div>
         </div>
@@ -350,7 +477,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/register?role=student">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 shadow-lg">
                 Start Learning Today
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Button>
@@ -365,49 +492,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Contact Section - Clean 3D Cards */}
       <section id="contact" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">Get in Touch</Badge>
+            <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">Get in Touch</Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
               Contact Us
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Phone className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Phone</h3>
-                <a href="tel:9844942547" className="text-blue-600 hover:underline">
-                  9844942547
-                </a>
-              </CardContent>
-            </Card>
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Email</h3>
-                <a href="mailto:muhammedadnan50007@gmail.com" className="text-blue-600 hover:underline text-sm">
-                  muhammedadnan50007@gmail.com
-                </a>
-              </CardContent>
-            </Card>
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Location</h3>
-                <p className="text-gray-600">
-                  Bengaluru, Karnataka
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {[
+              { icon: Phone, title: "Phone", value: "9844942547", href: "tel:9844942547" },
+              { icon: Mail, title: "Email", value: "muhammedadnan50007@gmail.com", href: "mailto:muhammedadnan50007@gmail.com" },
+              { icon: MapPin, title: "Location", value: "Bengaluru, Karnataka", href: null },
+            ].map((contact, index) => (
+              <ContactCard key={index} contact={contact} />
+            ))}
           </div>
         </div>
       </section>
@@ -443,7 +544,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; {new Date().getFullYear()} DCET Coaching. All rights reserved.</p>
-            <p className="mt-2 text-sm">Made with dedication by Mohammed Adnan (Rank 48)</p>
+            <p className="mt-2 text-sm">Made with ❤️ by Mohammed Adnan (Rank 48)</p>
           </div>
         </div>
       </footer>

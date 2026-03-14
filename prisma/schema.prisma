@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -224,4 +224,23 @@ model MotivationQuote {
   author    String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+// DCET Cutoff data for rank prediction
+model DcetCutoff {
+  id           String   @id @default(cuid())
+  year         Int
+  collegeName  String
+  collegeCode  String
+  branch       String
+  branchCode   String
+  category     String   // GM, 2A, 2B, 3A, 3B, SC, ST, etc.
+  openingRank  Int
+  closingRank  Int
+  collegeType  String   // Government, Private-Aided, Private-Unaided
+  location     String   // City/District
+  createdAt    DateTime @default(now())
+
+  @@index([year, branch, category])
+  @@index([year, closingRank])
 }
