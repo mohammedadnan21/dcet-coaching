@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error("No user found with this email");
+          throw new Error("Invalid email or password");
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
-          throw new Error("Invalid password");
+          throw new Error("Invalid email or password");
         }
 
         if (!user.isVerified) {
@@ -51,11 +51,19 @@ export const authOptions: NextAuthOptions = {
         const deviceId = credentials.deviceId || uuidv4();
         const token = uuidv4();
 
-        // Invalidate all previous sessions for this user
-        await prisma.deviceSession.updateMany({
-          where: { userId: user.id, active: true },
-          data: { active: false },
-        });
+        // Invalidate all previous sessions and clean up expired ones
+        await Promise.all([
+          prisma.deviceSession.updateMany({
+            where: { userId: user.id, active: true },
+            data: { active: false },
+          }),
+          prisma.deviceSession.deleteMany({
+            where: {
+              userId: user.id,
+              expiresAt: { lt: new Date() },
+            },
+          }),
+        ]);
 
         // Create new session
         await prisma.deviceSession.create({

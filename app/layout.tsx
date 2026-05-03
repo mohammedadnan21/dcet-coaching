@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
@@ -16,15 +16,30 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "DCET Coaching | Rank 48 - Mohammed Adnan",
-  description: "Premier DCET coaching by Mohammed Adnan (Rank 48). Get expert guidance for DCET preparation with comprehensive courses, mock tests, and personalized mentoring.",
-  keywords: "DCET coaching, DCET preparation, Karnataka DCET, engineering entrance, Mohammed Adnan, Rank 48, RVCE",
+  title: "Wintrix Academy | DCET Mentorship by Rank 48 (RVCE)",
+  description: "Wintrix Academy - Premier DCET coaching by Mohammed Adnan (Rank 48, RVCE). Expert guidance, strategy, and success for DCET preparation.",
+  keywords: "Wintrix Academy, DCET coaching, DCET preparation, Karnataka DCET, engineering entrance, Mohammed Adnan, Rank 48, RVCE",
   authors: [{ name: "Mohammed Adnan" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Wintrix Academy",
+  },
+  icons: [
+    { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+  ],
   openGraph: {
-    title: "DCET Coaching | Rank 48 - Mohammed Adnan",
-    description: "Premier DCET coaching by Mohammed Adnan (Rank 48). Expert guidance for DCET preparation.",
+    title: "Wintrix Academy | DCET Mentorship by Rank 48 (RVCE)",
+    description: "Wintrix Academy - Guidance. Strategy. Success. DCET mentorship by Rank 48 (RVCE).",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#d97706",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -33,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

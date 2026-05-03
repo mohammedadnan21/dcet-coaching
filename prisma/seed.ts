@@ -6,15 +6,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Starting seed...");
 
-  // Create admin user (Mohammed Adnan)
-  const adminPassword = await bcrypt.hash("Admin@48Rank", 12);
+  // Create admin user from environment variables
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminRawPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminRawPassword) {
+    throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
+  }
+
+  const adminPassword = await bcrypt.hash(adminRawPassword, 12);
   
   const admin = await prisma.user.upsert({
-    where: { email: "muhammedadnan50007@gmail.com" },
+    where: { email: adminEmail },
     update: {},
     create: {
       name: "Mohammed Adnan",
-      email: "muhammedadnan50007@gmail.com",
+      email: adminEmail,
       phone: "9844942547",
       password: adminPassword,
       role: "ADMIN",

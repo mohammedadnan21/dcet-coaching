@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,9 +65,42 @@ export default function TakeTestPage() {
     results: Result[];
   } | null>(null);
 
+  const autoSubmitRef = useRef(false);
+  const submittingRef = useRef(false);
+
   useEffect(() => {
     startTest();
   }, [testId]);
+
+  const autoSubmit = useCallback(async () => {
+    if (autoSubmitRef.current || submittingRef.current) return;
+    autoSubmitRef.current = true;
+    submittingRef.current = true;
+    setSubmitting(true);
+
+    try {
+      const currentTestData = testData;
+      if (!currentTestData) return;
+
+      const response = await fetch("/api/tests/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptId: currentTestData.attemptId }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setResults(data);
+        setSubmitted(true);
+        toast({ title: "Time's Up!", description: `Test auto-submitted. You scored ${data.score}/${data.totalMarks}` });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to auto-submit test", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+      submittingRef.current = false;
+    }
+  }, [testData]);
 
   useEffect(() => {
     if (timeLeft <= 0 || submitted) return;
@@ -75,7 +108,7 @@ export default function TakeTestPage() {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSubmit();
+          autoSubmit();
           return 0;
         }
         return prev - 1;
@@ -83,7 +116,7 @@ export default function TakeTestPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, submitted]);
+  }, [timeLeft, submitted, autoSubmit]);
 
   const startTest = async () => {
     try {
@@ -132,10 +165,10 @@ export default function TakeTestPage() {
   const saveAnswer = async (questionId: string, option: string) => {
     if (!testData) return;
 
-    setAnswers({ ...answers, [questionId]: option });
+    setAnswers((prev) => ({ ...prev, [questionId]: option }));
 
     try {
-      await fetch("/api/tests/attempt", {
+      const response = await fetch("/api/tests/attempt", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -144,8 +177,12 @@ export default function TakeTestPage() {
           selectedOption: option,
         }),
       });
-    } catch (error) {
-      console.error("Failed to save answer:", error);
+
+      if (!response.ok) {
+        toast({ title: "Warning", description: "Failed to save answer to server. It will retry on submit.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Warning", description: "Network error saving answer. Check your connection.", variant: "destructive" });
     }
   };
 
@@ -190,7 +227,7 @@ export default function TakeTestPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-500">Loading test...</p>
+        <p className="text-stone-500">Loading test...</p>
       </div>
     );
   }
@@ -198,19 +235,19 @@ export default function TakeTestPage() {
   if (submitted && results) {
     return (
       <div className="space-y-6 max-w-4xl mx-auto">
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Test Results</CardTitle>
+            <CardTitle className="text-2xl text-white">Test Results</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mb-4">
+              <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center mb-4">
                 <span className="text-4xl font-bold text-white">{results.percentage}%</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900 mb-2">
+              <p className="text-2xl font-bold text-white mb-2">
                 {results.score} / {results.totalMarks}
               </p>
-              <p className="text-gray-600">
+              <p className="text-stone-400">
                 {results.percentage >= 80
                   ? "Excellent! Keep it up!"
                   : results.percentage >= 60
@@ -221,14 +258,14 @@ export default function TakeTestPage() {
           </CardContent>
         </Card>
 
-        <h2 className="text-xl font-bold text-gray-900">Review Answers</h2>
+        <h2 className="text-xl font-bold text-white">Review Answers</h2>
         {results.results.map((r, index) => (
-          <Card key={r.questionId} className="border-0 shadow-md">
+          <Card key={r.questionId} className="border border-amber-900/15 bg-stone-900 shadow-md">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    r.isCorrect ? "bg-green-100" : "bg-red-100"
+                    r.isCorrect ? "bg-green-900/25" : "bg-red-900/25"
                   }`}
                 >
                   {r.isCorrect ? (
@@ -238,7 +275,7 @@ export default function TakeTestPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900 mb-3">
+                  <p className="font-medium text-white mb-3">
                     Q{index + 1}. {r.question}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -252,10 +289,10 @@ export default function TakeTestPage() {
                           key={opt}
                           className={`p-3 rounded-lg border ${
                             isCorrect
-                              ? "bg-green-50 border-green-300"
+                              ? "bg-green-900/15 border-green-300"
                               : isSelected && !isCorrect
-                              ? "bg-red-50 border-red-300"
-                              : "bg-gray-50 border-gray-200"
+                              ? "bg-red-900/15 border-red-300"
+                              : "bg-stone-800/50 border-stone-700"
                           }`}
                         >
                           <span className="font-medium mr-2">{opt}.</span>
@@ -278,7 +315,10 @@ export default function TakeTestPage() {
           <Button onClick={() => router.push("/student/tests")} variant="outline" className="flex-1">
             Back to Tests
           </Button>
-          <Button onClick={() => router.push("/student/rankings")} className="flex-1 bg-blue-600 hover:bg-blue-700">
+          <Button
+            onClick={() => router.push("/student/rankings")}
+            className="flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+          >
             View Rankings
           </Button>
         </div>
@@ -294,15 +334,15 @@ export default function TakeTestPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-md sticky top-4 z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-900 border border-amber-900/15 p-4 rounded-xl shadow-md sticky top-4 z-10">
         <div>
-          <h1 className="font-bold text-lg text-gray-900">{testData.title}</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="font-bold text-base sm:text-lg text-white">{testData.title}</h1>
+          <p className="text-sm text-stone-500">
             Question {currentQuestion + 1} of {testData.questions.length}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Badge className={`${timeLeft < 60 ? "bg-red-500" : "bg-blue-500"} text-white`}>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Badge className={`${timeLeft < 60 ? "bg-red-500" : "bg-amber-600"} text-white`}>
             <Clock className="w-4 h-4 mr-1" />
             {formatTime(timeLeft)}
           </Badge>
@@ -313,11 +353,11 @@ export default function TakeTestPage() {
       </div>
 
       {/* Question */}
-      <Card className="border-0 shadow-md">
+      <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
         <CardContent className="p-6">
           <div className="mb-6">
             <Badge className="mb-4">{question.marks} mark{question.marks > 1 ? "s" : ""}</Badge>
-            <p className="text-lg font-medium text-gray-900">{question.question}</p>
+            <p className="text-lg font-medium text-white">{question.question}</p>
           </div>
 
           <div className="space-y-3">
@@ -329,10 +369,10 @@ export default function TakeTestPage() {
                 <button
                   key={opt}
                   onClick={() => saveAnswer(question.id, opt)}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                  className={`w-full p-4 text-left rounded-lg border-2 transition-all text-stone-300 ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                      ? "border-amber-500 bg-amber-900/15 text-white"
+                      : "border-stone-700 hover:border-amber-700/40 hover:bg-amber-900/15"
                   }`}
                 >
                   <span className="font-medium mr-3">{opt}.</span>
@@ -344,45 +384,48 @@ export default function TakeTestPage() {
         </CardContent>
       </Card>
 
+      {/* Question Numbers */}
+      <div className="flex gap-2 flex-wrap justify-center">
+        {testData.questions.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentQuestion(index)}
+            className={`w-8 h-8 rounded-lg text-sm font-medium ${
+              index === currentQuestion
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white"
+                : answers[testData.questions[index].id]
+                ? "bg-green-900/25 text-green-400"
+                : "bg-stone-800/50 text-stone-400"
+            }`}
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
+
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Button
           onClick={() => setCurrentQuestion((prev) => Math.max(0, prev - 1))}
           disabled={currentQuestion === 0}
           variant="outline"
+          className="flex-shrink-0"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
+          <ArrowLeft className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Previous</span>
         </Button>
 
-        <div className="flex gap-2 flex-wrap justify-center">
-          {testData.questions.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentQuestion(index)}
-              className={`w-8 h-8 rounded-lg text-sm font-medium ${
-                index === currentQuestion
-                  ? "bg-blue-600 text-white"
-                  : answers[testData.questions[index].id]
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
-
         {currentQuestion === testData.questions.length - 1 ? (
-          <Button onClick={handleSubmit} disabled={submitting} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={handleSubmit} disabled={submitting} className="bg-green-600 hover:bg-green-700 flex-shrink-0">
             {submitting ? "Submitting..." : "Submit Test"}
           </Button>
         ) : (
           <Button
             onClick={() => setCurrentQuestion((prev) => Math.min(testData.questions.length - 1, prev + 1))}
+            className="flex-shrink-0"
           >
-            Next
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <span className="hidden sm:inline">Next</span>
+            <ArrowRight className="w-4 h-4 sm:ml-2" />
           </Button>
         )}
       </div>

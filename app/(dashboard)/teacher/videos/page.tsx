@@ -24,7 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Video, Play } from "lucide-react";
+import { Plus, Video, Play } from "lucide-react";
 
 interface VideoItem {
   id: string;
@@ -61,9 +61,10 @@ export default function TeacherVideosPage() {
 
   const fetchVideos = async () => {
     try {
-      const response = await fetch("/api/videos");
+      const response = await fetch("/api/videos?limit=100");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      setVideos(data);
+      setVideos(data.items);
     } catch (error) {
       console.error("Failed to fetch videos:", error);
     } finally {
@@ -74,6 +75,7 @@ export default function TeacherVideosPage() {
   const fetchSubjects = async () => {
     try {
       const response = await fetch("/api/subjects");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setSubjects(data);
     } catch (error) {
@@ -117,12 +119,12 @@ export default function TeacherVideosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Videos</h1>
-          <p className="text-gray-600 mt-1">Upload and manage course videos</p>
+          <h1 className="text-3xl font-bold text-white">Videos</h1>
+          <p className="text-stone-400 mt-1">Upload and manage course videos</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Video
             </Button>
@@ -192,13 +194,13 @@ export default function TeacherVideosPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12 text-stone-400">Loading...</div>
       ) : videos.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Videos Yet</h3>
-            <p className="text-gray-600">Add your first video to get started.</p>
+            <Video className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2 text-white">No Videos Yet</h3>
+            <p className="text-stone-400">Add your first video to get started.</p>
           </CardContent>
         </Card>
       ) : (
@@ -206,8 +208,8 @@ export default function TeacherVideosPage() {
           {videos.map((video) => {
             const videoId = getYoutubeVideoId(video.youtubeUrl);
             return (
-              <Card key={video.id} className="border-0 shadow-md overflow-hidden">
-                <div className="relative aspect-video bg-gray-100">
+              <Card key={video.id} className="border border-amber-900/15 bg-stone-900 shadow-md overflow-hidden">
+                <div className="relative aspect-video bg-stone-800/50">
                   {videoId ? (
                     <img
                       src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
@@ -216,7 +218,7 @@ export default function TeacherVideosPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Video className="w-12 h-12 text-gray-400" />
+                      <Video className="w-12 h-12 text-stone-500" />
                     </div>
                   )}
                   <a
@@ -231,8 +233,8 @@ export default function TeacherVideosPage() {
                   </a>
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-1">{video.title}</h3>
-                  <p className="text-sm text-blue-600">{video.subject.name}</p>
+                  <h3 className="font-semibold text-white mb-1">{video.title}</h3>
+                  <p className="text-sm text-amber-500">{video.subject.name}</p>
                 </CardContent>
               </Card>
             );

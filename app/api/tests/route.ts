@@ -13,24 +13,32 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const subjectId = searchParams.get("subjectId");
     const withQuestions = searchParams.get("withQuestions") === "true";
+    const isPrivileged = session.user.role === "ADMIN" || session.user.role === "TEACHER";
 
-    const where: any = { active: true };
+    const where: Record<string, unknown> = { active: true };
     if (subjectId) {
       where.subjectId = subjectId;
     }
 
     const tests = await prisma.mockTest.findMany({
       where,
+      take: 50,
       include: {
         subject: { select: { id: true, name: true } },
         creator: { select: { id: true, name: true } },
-        questions: withQuestions,
+        questions: withQuestions && isPrivileged
+          ? true
+          : withQuestions
+            ? { select: { id: true, question: true, optionA: true, optionB: true, optionC: true, optionD: true, marks: true } }
+            : false,
         _count: { select: { questions: true, attempts: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(tests);
+    return NextResponse.json(tests, {
+      headers: { "Cache-Control": "private, s-maxage=30, stale-while-revalidate=15" },
+    });
   } catch (error) {
     console.error("Error fetching tests:", error);
     return NextResponse.json({ error: "Failed to fetch tests" }, { status: 500 });
@@ -47,23 +55,39 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, subjectId, duration, showRanking, questions } = body;
 
+    if (!title || !subjectId || !duration || !Array.isArray(questions) || questions.length === 0) {
+      return NextResponse.json({ error: "Title, subject, duration, and at least one question are required" }, { status: 400 });
+    }
+
+    const parsedDuration = parseInt(duration);
+    if (isNaN(parsedDuration) || parsedDuration < 1) {
+      return NextResponse.json({ error: "Duration must be a positive number" }, { status: 400 });
+    }
+
+    const validOptions = ["A", "B", "C", "D"];
+    for (const q of questions) {
+      if (!q.question || !q.optionA || !q.optionB || !q.optionC || !q.optionD || !validOptions.includes(q.correctOption)) {
+        return NextResponse.json({ error: "Each question must have text, 4 options, and a valid correct option (A-D)" }, { status: 400 });
+      }
+    }
+
     const test = await prisma.mockTest.create({
       data: {
         title,
         description,
         subjectId,
-        duration: parseInt(duration),
+        duration: parsedDuration,
         showRanking: showRanking || false,
         createdBy: session.user.id,
         questions: {
-          create: questions.map((q: any) => ({
-            question: q.question,
-            optionA: q.optionA,
-            optionB: q.optionB,
-            optionC: q.optionC,
-            optionD: q.optionD,
-            correctOption: q.correctOption,
-            marks: q.marks || 1,
+          create: questions.map((q: Record<string, unknown>) => ({
+            question: q.question as string,
+            optionA: q.optionA as string,
+            optionB: q.optionB as string,
+            optionC: q.optionC as string,
+            optionD: q.optionD as string,
+            correctOption: q.correctOption as string,
+            marks: (q.marks as number) || 1,
           })),
         },
       },
@@ -90,7 +114,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, showRanking, active } = body;
 
-    const updateData: any = {};
+    const updateData: Record<string, boolean> = {};
     if (showRanking !== undefined) updateData.showRanking = showRanking;
     if (active !== undefined) updateData.active = active;
 

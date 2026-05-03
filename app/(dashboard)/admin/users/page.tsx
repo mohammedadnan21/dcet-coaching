@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Search, Trash2, UserCog, Filter } from "lucide-react";
+import { Search, Trash2, Filter } from "lucide-react";
 
 interface User {
   id: string;
@@ -42,8 +42,17 @@ interface User {
   createdAt: string;
 }
 
+interface UsersListResponse {
+  items: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -54,23 +63,72 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    fetchUsers();
+    const load = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (roleFilter) params.set("role", roleFilter);
+        if (statusFilter) params.set("status", statusFilter);
+        if (search) params.set("search", search);
+        params.set("page", "1");
+        params.set("limit", "20");
+
+        const response = await fetch(`/api/admin/users?${params}`);
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data: UsersListResponse = await response.json();
+        setUsers(data.items);
+        setTotalUsers(data.total);
+        setPage(1);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [roleFilter, statusFilter]);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (roleFilter) params.set("role", roleFilter);
       if (statusFilter) params.set("status", statusFilter);
       if (search) params.set("search", search);
+      params.set("page", "1");
+      params.set("limit", "20");
 
       const response = await fetch(`/api/admin/users?${params}`);
-      const data = await response.json();
-      setUsers(data);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data: UsersListResponse = await response.json();
+      setUsers(data.items);
+      setTotalUsers(data.total);
+      setPage(1);
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreUsers = async () => {
+    const nextPage = page + 1;
+    try {
+      const params = new URLSearchParams();
+      if (roleFilter) params.set("role", roleFilter);
+      if (statusFilter) params.set("status", statusFilter);
+      if (search) params.set("search", search);
+      params.set("page", String(nextPage));
+      params.set("limit", "20");
+
+      const response = await fetch(`/api/admin/users?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data: UsersListResponse = await response.json();
+      setUsers((prev) => [...prev, ...data.items]);
+      setTotalUsers(data.total);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Failed to load more users:", error);
     }
   };
 
@@ -139,35 +197,35 @@ export default function UsersPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
-      PENDING: "bg-amber-100 text-amber-700",
-      APPROVED: "bg-green-100 text-green-700",
-      REJECTED: "bg-red-100 text-red-700",
+      PENDING: "bg-amber-900/25 text-amber-400",
+      APPROVED: "bg-green-900/25 text-green-400",
+      REJECTED: "bg-red-900/25 text-red-400",
     };
     return <Badge className={variants[status] || ""}>{status}</Badge>;
   };
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, string> = {
-      ADMIN: "bg-purple-100 text-purple-700",
-      TEACHER: "bg-blue-100 text-blue-700",
-      STUDENT: "bg-gray-100 text-gray-700",
+      ADMIN: "bg-purple-900/25 text-purple-400",
+      TEACHER: "bg-amber-900/30 text-amber-400 border border-amber-700/30",
+      STUDENT: "bg-stone-800/50 text-stone-400",
     };
     return <Badge className={variants[role] || ""}>{role}</Badge>;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-stone-950 min-h-full">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-        <p className="text-gray-600 mt-1">Manage all users on the platform</p>
+        <h1 className="text-3xl font-bold text-white">User Management</h1>
+        <p className="text-stone-400 mt-1">Manage all users on the platform</p>
       </div>
 
-      <Card className="border-0 shadow-md">
+      <Card className="border border-amber-900/15 bg-stone-900 shadow-md overflow-hidden">
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-4 justify-between">
             <div className="flex gap-2 flex-1">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
                 <Input
                   placeholder="Search by name, email, or phone..."
                   value={search}
@@ -176,7 +234,9 @@ export default function UsersPage() {
                   className="pl-10"
                 />
               </div>
-              <Button onClick={handleSearch}>Search</Button>
+              <Button onClick={handleSearch} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
+                Search
+              </Button>
             </div>
             <div className="flex gap-2">
               <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -206,7 +266,7 @@ export default function UsersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -227,7 +287,7 @@ export default function UsersPage() {
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-stone-500">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -274,7 +334,7 @@ export default function UsersPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-500 hover:text-red-400 hover:bg-red-900/15"
                         onClick={() => setDeleteDialog({ open: true, user })}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -285,6 +345,13 @@ export default function UsersPage() {
               )}
             </TableBody>
           </Table>
+          {!loading && users.length < totalUsers && (
+            <div className="flex justify-center pt-4">
+              <Button variant="outline" onClick={loadMoreUsers}>
+                Load More
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

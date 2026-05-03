@@ -33,8 +33,8 @@ export function useSessionCheck() {
     // Check session immediately
     checkSession();
 
-    // Check session every 30 seconds
-    const interval = setInterval(checkSession, 30000);
+    // Check session every 2 minutes
+    const interval = setInterval(checkSession, 120000);
 
     return () => clearInterval(interval);
   }, [checkSession]);

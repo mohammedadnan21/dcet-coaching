@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Role: ADMIN, TEACHER, STUDENT
@@ -35,6 +36,8 @@ model User {
   createdTests    MockTest[]      @relation("CreatedTests")
   teacherSubjects TeacherSubject[]
   chatMessages    ChatMessage[]
+
+  @@index([role, status])
 }
 
 model DeviceSession {
@@ -49,6 +52,7 @@ model DeviceSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, deviceId])
+  @@index([userId])
 }
 
 model OtpVerification {
@@ -100,6 +104,8 @@ model Video {
 
   subject  Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   uploader User    @relation("UploadedVideos", fields: [uploadedBy], references: [id])
+
+  @@index([subjectId])
 }
 
 model Meeting {
@@ -115,6 +121,8 @@ model Meeting {
   updatedAt    DateTime @updatedAt
 
   host User @relation("HostMeetings", fields: [hostId], references: [id])
+
+  @@index([scheduledAt, cancelled])
 }
 
 model Question {
@@ -129,6 +137,10 @@ model Question {
   askedBy User     @relation("AskedQuestions", fields: [askedById], references: [id], onDelete: Cascade)
   target  User?    @relation("TargetQuestions", fields: [targetId], references: [id])
   answers Answer[]
+
+  @@index([askedById])
+  @@index([targetId])
+  @@index([visibility])
 }
 
 model Answer {
@@ -141,6 +153,8 @@ model Answer {
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answerer User     @relation(fields: [answeredBy], references: [id])
+
+  @@index([questionId])
 }
 
 model MockTest {
@@ -159,6 +173,8 @@ model MockTest {
   creator   User          @relation("CreatedTests", fields: [createdBy], references: [id])
   questions MCQuestion[]
   attempts  TestAttempt[]
+
+  @@index([active, subjectId])
 }
 
 model MCQuestion {
@@ -175,6 +191,8 @@ model MCQuestion {
 
   test    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
   answers TestAnswer[]
+
+  @@index([testId])
 }
 
 model TestAttempt {
@@ -192,6 +210,7 @@ model TestAttempt {
   answers TestAnswer[]
 
   @@unique([testId, userId])
+  @@index([userId])
 }
 
 model TestAnswer {
@@ -216,6 +235,8 @@ model ChatMessage {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model MotivationQuote {
@@ -224,6 +245,8 @@ model MotivationQuote {
   author    String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  @@index([active])
 }
 
 // DCET Cutoff data for rank prediction

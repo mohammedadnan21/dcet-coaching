@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         { score: "desc" },
         { completedAt: "asc" },
       ],
+      take: 50,
     });
 
     // Assign ranks

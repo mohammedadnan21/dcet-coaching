@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +44,7 @@ export default function SubjectsPage() {
   const fetchSubjects = async () => {
     try {
       const response = await fetch("/api/subjects");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setSubjects(data);
     } catch (error) {
@@ -131,15 +131,15 @@ export default function SubjectsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-stone-950 min-h-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Subjects</h1>
-          <p className="text-gray-600 mt-1">Manage course subjects</p>
+          <h1 className="text-3xl font-bold text-white">Subjects</h1>
+          <p className="text-stone-400 mt-1">Manage course subjects</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openNewDialog} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Subject
             </Button>
@@ -193,15 +193,15 @@ export default function SubjectsPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading subjects...</p>
+          <p className="text-stone-500">Loading subjects...</p>
         </div>
       ) : subjects.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Subjects Yet</h3>
-            <p className="text-gray-600 mb-4">Create your first subject to get started.</p>
-            <Button onClick={openNewDialog}>
+            <BookOpen className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Subjects Yet</h3>
+            <p className="text-stone-400 mb-4">Create your first subject to get started.</p>
+            <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Subject
             </Button>
@@ -210,14 +210,14 @@ export default function SubjectsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {subjects.map((subject) => (
-            <Card key={subject.id} className="border-0 shadow-md">
+            <Card key={subject.id} className="border border-amber-900/15 bg-stone-900 shadow-md">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-amber-900/25 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-amber-500" />
                     </div>
-                    <CardTitle className="text-lg">{subject.name}</CardTitle>
+                    <CardTitle className="text-lg text-white">{subject.name}</CardTitle>
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(subject)}>
@@ -235,15 +235,15 @@ export default function SubjectsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-stone-400 text-sm mb-4">
                   {subject.description || "No description"}
                 </p>
                 <div className="flex gap-4">
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <div className="flex items-center gap-1 text-sm text-stone-500">
                     <Video className="w-4 h-4" />
                     <span>{subject._count.videos} videos</span>
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <div className="flex items-center gap-1 text-sm text-stone-500">
                     <ClipboardList className="w-4 h-4" />
                     <span>{subject._count.mockTests} tests</span>
                   </div>

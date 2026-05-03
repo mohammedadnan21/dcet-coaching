@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { questionSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +13,11 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const visibility = searchParams.get("visibility");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const skip = (page - 1) * limit;
 
-    let where: any = {};
+    let where: Record<string, unknown> = {};
 
     if (session.user.role === "STUDENT") {
       // Students can see public questions and their own private questions
@@ -39,22 +43,27 @@ export async function GET(request: NextRequest) {
       where.visibility = visibility;
     }
 
-    const questions = await prisma.question.findMany({
-      where,
-      include: {
-        askedBy: { select: { id: true, name: true } },
-        target: { select: { id: true, name: true, role: true } },
-        answers: {
-          include: {
-            answerer: { select: { id: true, name: true, role: true } },
+    const [questions, total] = await Promise.all([
+      prisma.question.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          askedBy: { select: { id: true, name: true } },
+          target: { select: { id: true, name: true, role: true } },
+          answers: {
+            include: {
+              answerer: { select: { id: true, name: true, role: true } },
+            },
+            orderBy: { createdAt: "asc" },
           },
-          orderBy: { createdAt: "asc" },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.question.count({ where }),
+    ]);
 
-    return NextResponse.json(questions);
+    return NextResponse.json({ items: questions, total, page, limit });
   } catch (error) {
     console.error("Error fetching questions:", error);
     return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
@@ -69,12 +78,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { content, visibility, targetId } = body;
+    const validation = questionSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues?.[0]?.message || "Invalid input" },
+        { status: 400 }
+      );
+    }
+
+    const { content, visibility, targetId } = validation.data;
 
     const question = await prisma.question.create({
       data: {
         content,
-        visibility: visibility || "PUBLIC",
+        visibility,
         askedById: session.user.id,
         targetId: targetId || null,
       },

@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
-// Start or get a test attempt
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = rateLimit(`attempt:${session.user.id}`, 5, 60_000);
+    if (!rl.success) {
+      return NextResponse.json({ error: "Too many attempts. Please wait a moment." }, { status: 429 });
     }
 
     const body = await request.json();
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (attempt?.completed) {
-      return NextResponse.json({ error: "Test already completed", attempt }, { status: 400 });
+      return NextResponse.json({ error: "Test already completed" }, { status: 400 });
     }
 
     if (!attempt) {
@@ -49,6 +54,10 @@ export async function POST(request: NextRequest) {
 
       if (!test) {
         return NextResponse.json({ error: "Test not found" }, { status: 404 });
+      }
+
+      if (!test.active) {
+        return NextResponse.json({ error: "This test is no longer available" }, { status: 400 });
       }
 
       const totalMarks = test.questions.reduce((sum, q) => sum + q.marks, 0);
@@ -123,13 +132,21 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Test already completed" }, { status: 400 });
     }
 
-    // Get the question to check correct answer
+    const validOptions = ["A", "B", "C", "D"];
+    if (!selectedOption || !validOptions.includes(selectedOption)) {
+      return NextResponse.json({ error: "Invalid option. Must be A, B, C, or D" }, { status: 400 });
+    }
+
     const question = await prisma.mCQuestion.findUnique({
       where: { id: questionId },
     });
 
     if (!question) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+
+    if (question.testId !== attempt.testId) {
+      return NextResponse.json({ error: "Question does not belong to this test" }, { status: 400 });
     }
 
     const isCorrect = selectedOption === question.correctOption;

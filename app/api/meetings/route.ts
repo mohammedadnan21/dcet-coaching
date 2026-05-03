@@ -14,22 +14,30 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const upcoming = searchParams.get("upcoming") === "true";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (upcoming) {
       where.scheduledAt = { gte: new Date() };
       where.cancelled = false;
     }
 
-    const meetings = await prisma.meeting.findMany({
-      where,
-      include: {
-        host: { select: { id: true, name: true, role: true } },
-      },
-      orderBy: { scheduledAt: "asc" },
-    });
+    const [meetings, total] = await Promise.all([
+      prisma.meeting.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          host: { select: { id: true, name: true, role: true } },
+        },
+        orderBy: { scheduledAt: "asc" },
+      }),
+      prisma.meeting.count({ where }),
+    ]);
 
-    return NextResponse.json(meetings);
+    return NextResponse.json({ items: meetings, total, page, limit });
   } catch (error) {
     console.error("Error fetching meetings:", error);
     return NextResponse.json({ error: "Failed to fetch meetings" }, { status: 500 });
@@ -91,7 +99,16 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Meeting ID is required" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const existingMeeting = await prisma.meeting.findUnique({ where: { id } });
+    if (!existingMeeting) {
+      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
+    }
+
+    if (session.user.role !== "ADMIN" && existingMeeting.hostId !== session.user.id) {
+      return NextResponse.json({ error: "You can only edit your own meetings" }, { status: 403 });
+    }
+
+    const updateData: Record<string, unknown> = {};
     if (title) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (zoomLink) updateData.zoomLink = zoomLink;

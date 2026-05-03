@@ -46,6 +46,7 @@ export default function StudentVideosPage() {
   const fetchSubjects = async () => {
     try {
       const response = await fetch("/api/subjects");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setSubjects(data);
     } catch (error) {
@@ -56,12 +57,13 @@ export default function StudentVideosPage() {
   const fetchVideos = async () => {
     setLoading(true);
     try {
-      const url = selectedSubject
-        ? `/api/videos?subjectId=${selectedSubject}`
-        : "/api/videos";
+      const url = selectedSubject && selectedSubject !== "all"
+        ? `/api/videos?subjectId=${selectedSubject}&limit=100`
+        : "/api/videos?limit=100";
       const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      setVideos(data);
+      setVideos(data.items);
     } catch (error) {
       console.error("Failed to fetch videos:", error);
     } finally {
@@ -83,11 +85,11 @@ export default function StudentVideosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Videos</h1>
-          <p className="text-gray-600 mt-1">Watch recorded lectures</p>
+          <h1 className="text-3xl font-bold text-white">Videos</h1>
+          <p className="text-stone-400 mt-1">Watch recorded lectures</p>
         </div>
         <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] border-amber-900/20 bg-stone-900 text-white">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="All Subjects" />
           </SelectTrigger>
@@ -104,7 +106,7 @@ export default function StudentVideosPage() {
 
       {/* Video Player */}
       {selectedVideo && (
-        <Card className="border-0 shadow-md overflow-hidden">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md overflow-hidden">
           <div className="aspect-video">
             <iframe
               src={getYoutubeEmbedUrl(selectedVideo.youtubeUrl) || ""}
@@ -115,10 +117,10 @@ export default function StudentVideosPage() {
             />
           </div>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold text-gray-900">{selectedVideo.title}</h2>
-            <p className="text-blue-600 text-sm">{selectedVideo.subject.name}</p>
+            <h2 className="text-xl font-semibold text-white">{selectedVideo.title}</h2>
+            <p className="text-amber-500 text-sm">{selectedVideo.subject.name}</p>
             {selectedVideo.description && (
-              <p className="text-gray-600 mt-2">{selectedVideo.description}</p>
+              <p className="text-stone-400 mt-2">{selectedVideo.description}</p>
             )}
           </CardContent>
         </Card>
@@ -126,13 +128,13 @@ export default function StudentVideosPage() {
 
       {/* Video Grid */}
       {loading ? (
-        <div className="text-center py-12">Loading videos...</div>
+        <div className="text-center py-12 text-stone-400">Loading videos...</div>
       ) : videos.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Videos Yet</h3>
-            <p className="text-gray-600">Videos will appear here once uploaded.</p>
+            <Video className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Videos Yet</h3>
+            <p className="text-stone-400">Videos will appear here once uploaded.</p>
           </CardContent>
         </Card>
       ) : (
@@ -144,12 +146,12 @@ export default function StudentVideosPage() {
             return (
               <Card
                 key={video.id}
-                className={`border-0 shadow-md overflow-hidden cursor-pointer transition-all ${
-                  isSelected ? "ring-2 ring-blue-500" : "hover:shadow-lg"
+                className={`border border-amber-900/15 bg-stone-900 shadow-md overflow-hidden cursor-pointer transition-all ${
+                  isSelected ? "ring-2 ring-amber-500" : "hover:shadow-lg"
                 }`}
                 onClick={() => setSelectedVideo(video)}
               >
-                <div className="relative aspect-video bg-gray-100">
+                <div className="relative aspect-video bg-stone-800/50">
                   {videoId ? (
                     <img
                       src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
@@ -158,7 +160,7 @@ export default function StudentVideosPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Video className="w-12 h-12 text-gray-400" />
+                      <Video className="w-12 h-12 text-stone-500" />
                     </div>
                   )}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
@@ -168,8 +170,8 @@ export default function StudentVideosPage() {
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
-                  <p className="text-sm text-blue-600 mt-1">{video.subject.name}</p>
+                  <h3 className="font-semibold text-white line-clamp-2">{video.title}</h3>
+                  <p className="text-sm text-amber-500 mt-1">{video.subject.name}</p>
                 </CardContent>
               </Card>
             );

@@ -2,7 +2,7 @@
 
 // Reuse admin tests page functionality
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -138,12 +137,12 @@ export default function TeacherTestsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mock Tests</h1>
-          <p className="text-gray-600 mt-1">Create assessments for students</p>
+          <h1 className="text-3xl font-bold text-white">Mock Tests</h1>
+          <p className="text-stone-400 mt-1">Create assessments for students</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />Create Test
             </Button>
           </DialogTrigger>
@@ -178,15 +177,15 @@ export default function TeacherTestsPage() {
                     <Label>Show Rankings</Label>
                   </div>
                 </div>
-                <div className="border-t pt-4">
+                <div className="border-t border-amber-900/20 pt-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">Questions ({questions.length})</h3>
+                    <h3 className="font-semibold text-white">Questions ({questions.length})</h3>
                     <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
                       <Plus className="w-4 h-4 mr-1" />Add
                     </Button>
                   </div>
                   {questions.map((q, index) => (
-                    <Card key={index} className="mb-4">
+                    <Card key={index} className="mb-4 border border-amber-900/15 bg-stone-900 shadow-md">
                       <CardContent className="p-4 space-y-3">
                         <div className="flex justify-between">
                           <Label>Question {index + 1}</Label>
@@ -236,23 +235,23 @@ export default function TeacherTestsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12 text-stone-400">Loading...</div>
       ) : tests.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Tests</h3>
-            <p className="text-gray-600">Create your first test.</p>
+            <ClipboardList className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2 text-white">No Tests</h3>
+            <p className="text-stone-400">Create your first test.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tests.map((test) => (
-            <Card key={test.id} className="border-0 shadow-md">
+            <Card key={test.id} className="border border-amber-900/15 bg-stone-900 shadow-md">
               <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-1">{test.title}</h3>
-                <p className="text-sm text-blue-600 mb-3">{test.subject.name}</p>
-                <div className="flex gap-4 text-sm text-gray-500">
+                <h3 className="font-semibold text-lg mb-1 text-white">{test.title}</h3>
+                <p className="text-sm text-amber-500 mb-3">{test.subject.name}</p>
+                <div className="flex gap-4 text-sm text-stone-500">
                   <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{test.duration} mins</span>
                   <span className="flex items-center gap-1"><ClipboardList className="w-4 h-4" />{test._count.questions} Qs</span>
                   <span className="flex items-center gap-1"><Users className="w-4 h-4" />{test._count.attempts}</span>

@@ -7,8 +7,8 @@ export default function AuthLayout({
 }) {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 flex items-center justify-center">
-        <div className="animate-pulse text-gray-400">Loading...</div>
+      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
+        <div className="animate-pulse text-stone-500">Loading...</div>
       </div>
     }>
       {children}

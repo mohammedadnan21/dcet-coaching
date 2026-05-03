@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useCachedFetch } from "@/hooks/use-cached-fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -178,9 +179,10 @@ interface Subject {
 }
 
 export default function TestsPage() {
-  const [tests, setTests] = useState<Test[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: testsData, loading, refetch: refetchTests } = useCachedFetch<Test[]>("/api/tests");
+  const { data: subjectsData } = useCachedFetch<Subject[]>("/api/subjects");
+  const tests = testsData || [];
+  const subjects = subjectsData || [];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -201,32 +203,8 @@ export default function TestsPage() {
   const [importMode, setImportMode] = useState<"manual" | "bulk">("bulk");
   const [parsePreview, setParsePreview] = useState<MCQuestion[]>([]);
 
-  useEffect(() => {
-    fetchTests();
-    fetchSubjects();
-  }, []);
-
-  const fetchTests = async () => {
-    try {
-      const response = await fetch("/api/tests");
-      const data = await response.json();
-      setTests(data);
-    } catch (error) {
-      console.error("Failed to fetch tests:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSubjects = async () => {
-    try {
-      const response = await fetch("/api/subjects");
-      const data = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Failed to fetch subjects:", error);
-    }
-  };
+  const fetchTests = () => refetchTests();
+  const fetchSubjects = () => {};
 
   const addQuestion = () => {
     setQuestions([
@@ -331,15 +309,23 @@ export default function TestsPage() {
 
   const toggleRanking = async (testId: string, showRanking: boolean) => {
     try {
-      await fetch("/api/tests", {
+      const response = await fetch("/api/tests", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: testId, showRanking }),
       });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Request failed");
+      }
       fetchTests();
       toast({ title: "Updated", description: showRanking ? "Rankings enabled" : "Rankings hidden" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to update", variant: "destructive" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update",
+        variant: "destructive",
+      });
     }
   };
 
@@ -347,24 +333,32 @@ export default function TestsPage() {
     if (!confirm("Delete this test? This action cannot be undone.")) return;
 
     try {
-      await fetch(`/api/tests?id=${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/tests?id=${id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Request failed");
+      }
       toast({ title: "Deleted", description: "Test deleted successfully" });
       fetchTests();
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to delete test", variant: "destructive" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete test",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-stone-950 min-h-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mock Tests</h1>
-          <p className="text-gray-600 mt-1">Create and manage assessments</p>
+          <h1 className="text-3xl font-bold text-white">Mock Tests</h1>
+          <p className="text-stone-400 mt-1">Create and manage assessments</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Create Test
             </Button>
@@ -436,14 +430,14 @@ export default function TestsPage() {
                     <Badge variant="outline" className="text-lg px-4 py-2">
                       {questions.length} Questions
                     </Badge>
-                    <Badge className="bg-blue-600 text-lg px-4 py-2">
+                    <Badge className="bg-amber-900/30 text-amber-400 border border-amber-700/30 text-lg px-4 py-2">
                       Total: {totalMarks} Marks
                     </Badge>
                   </div>
                 </div>
 
                 {/* Questions Section with Tabs */}
-                <div className="border-t pt-4">
+                <div className="border-t border-amber-900/20 pt-4">
                   <Tabs value={importMode} onValueChange={(v) => setImportMode(v as "manual" | "bulk")}>
                     <div className="flex items-center justify-between mb-4">
                       <TabsList>
@@ -460,12 +454,12 @@ export default function TestsPage() {
 
                     {/* Bulk Import Tab */}
                     <TabsContent value="bulk" className="space-y-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="bg-amber-900/15 border border-amber-900/20 rounded-lg p-4">
                         <div className="flex items-start gap-3">
-                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                           <div className="text-sm">
-                            <p className="font-medium text-blue-900 mb-2">How to use Bulk Import:</p>
-                            <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                            <p className="font-medium text-white mb-2">How to use Bulk Import:</p>
+                            <ol className="list-decimal list-inside space-y-1 text-stone-400">
                               <li>Ask AI (ChatGPT/Gemini) to generate MCQ questions in this format</li>
                               <li>Copy all questions and paste them below</li>
                               <li>Click &quot;Parse Questions&quot; to preview</li>
@@ -510,15 +504,15 @@ export default function TestsPage() {
 
                       {/* Preview parsed questions */}
                       {parsePreview.length > 0 && (
-                        <div className="border rounded-lg p-4 bg-green-50">
-                          <h4 className="font-semibold text-green-800 mb-3">
+                        <div className="border rounded-lg p-4 bg-green-900/15">
+                          <h4 className="font-semibold text-green-400 mb-3">
                             Preview: {parsePreview.length} questions parsed successfully
                           </h4>
                           <div className="max-h-60 overflow-y-auto space-y-3">
                             {parsePreview.map((q, i) => (
-                              <div key={i} className="bg-white p-3 rounded border text-sm">
-                                <p className="font-medium">Q{i + 1}. {q.question}</p>
-                                <div className="grid grid-cols-2 gap-1 mt-2 text-gray-600">
+                              <div key={i} className="bg-stone-900 p-3 rounded border border-amber-900/15 text-sm">
+                                <p className="font-medium text-white">Q{i + 1}. {q.question}</p>
+                                <div className="grid grid-cols-2 gap-1 mt-2 text-stone-400">
                                   <span className={q.correctOption === 'A' ? 'text-green-600 font-medium' : ''}>A) {q.optionA}</span>
                                   <span className={q.correctOption === 'B' ? 'text-green-600 font-medium' : ''}>B) {q.optionB}</span>
                                   <span className={q.correctOption === 'C' ? 'text-green-600 font-medium' : ''}>C) {q.optionC}</span>
@@ -535,7 +529,7 @@ export default function TestsPage() {
                     {/* Manual Entry Tab */}
                     <TabsContent value="manual" className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">Questions ({questions.length})</h3>
+                        <h3 className="font-semibold text-white">Questions ({questions.length})</h3>
                         <Button type="button" variant="outline" size="sm" onClick={addQuestion}>
                           <Plus className="w-4 h-4 mr-1" />
                           Add Question
@@ -544,7 +538,7 @@ export default function TestsPage() {
 
                       <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
                         {questions.map((q, index) => (
-                          <Card key={index} className="border shadow-sm">
+                          <Card key={index} className="border border-amber-900/15 bg-stone-900 shadow-sm">
                             <CardContent className="p-4 space-y-3">
                               <div className="flex items-center justify-between">
                                 <Label className="text-base font-semibold">Question {index + 1}</Label>
@@ -553,7 +547,7 @@ export default function TestsPage() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="text-red-500 hover:text-red-700"
+                                    className="text-red-500 hover:text-red-400"
                                     onClick={() => removeQuestion(index)}
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -656,25 +650,25 @@ export default function TestsPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading tests...</p>
+          <p className="text-stone-500">Loading tests...</p>
         </div>
       ) : tests.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <ClipboardList className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Tests Yet</h3>
-            <p className="text-gray-600">Create your first mock test to get started.</p>
+            <ClipboardList className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Tests Yet</h3>
+            <p className="text-stone-400">Create your first mock test to get started.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tests.map((test) => (
-            <Card key={test.id} className="border-0 shadow-md">
+            <Card key={test.id} className="border border-amber-900/15 bg-stone-900 shadow-md">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{test.title}</CardTitle>
-                    <p className="text-sm text-blue-600">{test.subject.name}</p>
+                    <CardTitle className="text-lg text-white">{test.title}</CardTitle>
+                    <p className="text-sm text-amber-500">{test.subject.name}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -687,7 +681,7 @@ export default function TestsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-stone-400">
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     {test.duration} mins
@@ -701,8 +695,8 @@ export default function TestsPage() {
                     {test._count.attempts} attempts
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-sm text-gray-600">Show Rankings</span>
+                <div className="flex items-center justify-between pt-2 border-t border-amber-900/20">
+                  <span className="text-sm text-stone-400">Show Rankings</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -711,7 +705,7 @@ export default function TestsPage() {
                     {test.showRanking ? (
                       <Eye className="w-4 h-4 text-green-600" />
                     ) : (
-                      <EyeOff className="w-4 h-4 text-gray-400" />
+                      <EyeOff className="w-4 h-4 text-stone-500" />
                     )}
                   </Button>
                 </div>

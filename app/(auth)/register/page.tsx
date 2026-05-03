@@ -145,29 +145,31 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-stone-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-600/5 rounded-full blur-3xl" />
+      <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <Logo size="lg" />
           </Link>
-          <p className="text-gray-600 mt-2">
+          <p className="text-stone-400 mt-2">
             Create your {role.toLowerCase()} account
           </p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border border-amber-900/20 bg-stone-900">
           <CardHeader className="space-y-1 pb-4">
             <div className="flex items-center">
               {step !== "details" && step !== "success" && (
                 <button
                   onClick={() => setStep(step === "password" ? "otp" : "details")}
-                  className="mr-2 p-1 hover:bg-gray-100 rounded"
+                  className="mr-2 p-1 hover:bg-stone-800 rounded text-stone-400"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
               )}
-              <CardTitle className="text-2xl font-bold">
+              <CardTitle className="text-2xl font-bold text-white">
                 {step === "details" && "Create Account"}
                 {step === "otp" && "Verify Email"}
                 {step === "password" && "Set Password"}
@@ -221,7 +223,7 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                <Button type="submit" className="w-full h-11 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" disabled={loading}>
                   {loading ? "Sending OTP..." : "Send OTP"}
                 </Button>
               </form>
@@ -230,8 +232,8 @@ export default function RegisterPage() {
             {step === "otp" && (
               <form onSubmit={handleVerifyOTP} className="space-y-4">
                 {devOtp && (
-                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm">
-                    <strong>Dev Mode:</strong> Your OTP is <code className="bg-amber-100 px-2 py-1 rounded">{devOtp}</code>
+                  <div className="bg-amber-900/20 border border-amber-700/30 p-3 rounded-lg text-sm text-amber-400">
+                    <strong>Dev Mode:</strong> Your OTP is <code className="bg-amber-900/30 px-2 py-1 rounded">{devOtp}</code>
                   </div>
                 )}
                 <div className="space-y-2">
@@ -247,16 +249,16 @@ export default function RegisterPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading || otp.length !== 6}>
+                <Button type="submit" className="w-full h-11 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" disabled={loading || otp.length !== 6}>
                   {loading ? "Verifying..." : "Verify OTP"}
                 </Button>
 
-                <p className="text-center text-sm text-gray-600">
-                  Didn't receive code?{" "}
+                <p className="text-center text-sm text-stone-400">
+                  Didn&apos;t receive code?{" "}
                   <button
                     type="button"
                     onClick={handleSendOTP}
-                    className="text-blue-600 hover:underline"
+                    className="text-amber-500 hover:text-amber-400 hover:underline"
                     disabled={loading}
                   >
                     Resend
@@ -282,12 +284,12 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  <ul className="text-xs text-gray-500 space-y-1 mt-2">
+                  <ul className="text-xs text-stone-500 space-y-1 mt-2">
                     <li className={password.length >= 8 ? "text-green-600" : ""}>
                       • At least 8 characters
                     </li>
@@ -320,7 +322,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300"
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -330,7 +332,7 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                <Button type="submit" className="w-full h-11 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" disabled={loading}>
                   {loading ? "Setting Password..." : "Set Password"}
                 </Button>
               </form>
@@ -338,24 +340,24 @@ export default function RegisterPage() {
 
             {step === "success" && (
               <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                <div className="w-16 h-16 bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Account Created!</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg font-semibold text-white mb-2">Account Created!</h3>
+                <p className="text-stone-400 mb-6">
                   Your account is pending admin approval. You will be able to access the platform once approved.
                 </p>
                 <div className="space-y-3">
                   <Button
                     onClick={() => router.push("/verify-queue")}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
                   >
                     Check Status
                   </Button>
                   <Button
                     onClick={() => router.push("/login")}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-stone-700 text-stone-300 hover:bg-stone-800"
                   >
                     Go to Login
                   </Button>
@@ -365,9 +367,9 @@ export default function RegisterPage() {
 
             {step === "details" && (
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-stone-400">
                   Already have an account?{" "}
-                  <Link href={`/login?role=${roleParam}`} className="text-blue-600 hover:underline font-medium">
+                  <Link href={`/login?role=${roleParam}`} className="text-amber-500 hover:text-amber-400 hover:underline font-medium">
                     Sign In
                   </Link>
                 </p>

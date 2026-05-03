@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { useCachedFetch } from "@/hooks/use-cached-fetch";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Video, Play, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Video, Play } from "lucide-react";
 
 interface VideoItem {
   id: string;
@@ -35,15 +36,21 @@ interface VideoItem {
   uploader: { id: string; name: string };
 }
 
+interface VideosListResponse {
+  items: VideoItem[];
+  total: number;
+}
+
 interface Subject {
   id: string;
   name: string;
 }
 
 export default function VideosPage() {
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: videosData, loading, refetch: fetchVideos } = useCachedFetch<VideosListResponse>("/api/videos?limit=100");
+  const { data: subjectsData } = useCachedFetch<Subject[]>("/api/subjects");
+  const videos = videosData?.items ?? [];
+  const subjects = subjectsData || [];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoItem | null>(null);
   const [formData, setFormData] = useState({
@@ -53,33 +60,6 @@ export default function VideosPage() {
     subjectId: "",
   });
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetchVideos();
-    fetchSubjects();
-  }, []);
-
-  const fetchVideos = async () => {
-    try {
-      const response = await fetch("/api/videos");
-      const data = await response.json();
-      setVideos(data);
-    } catch (error) {
-      console.error("Failed to fetch videos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSubjects = async () => {
-    try {
-      const response = await fetch("/api/subjects");
-      const data = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Failed to fetch subjects:", error);
-    }
-  };
 
   const getYoutubeVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
@@ -162,15 +142,15 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-stone-950 min-h-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Videos</h1>
-          <p className="text-gray-600 mt-1">Manage course videos</p>
+          <h1 className="text-3xl font-bold text-white">Videos</h1>
+          <p className="text-stone-400 mt-1">Manage course videos</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openNewDialog} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Video
             </Button>
@@ -248,15 +228,15 @@ export default function VideosPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading videos...</p>
+          <p className="text-stone-500">Loading videos...</p>
         </div>
       ) : videos.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Videos Yet</h3>
-            <p className="text-gray-600 mb-4">Add your first video to get started.</p>
-            <Button onClick={openNewDialog}>
+            <Video className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Videos Yet</h3>
+            <p className="text-stone-400 mb-4">Add your first video to get started.</p>
+            <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Add Video
             </Button>
@@ -267,8 +247,8 @@ export default function VideosPage() {
           {videos.map((video) => {
             const videoId = getYoutubeVideoId(video.youtubeUrl);
             return (
-              <Card key={video.id} className="border-0 shadow-md overflow-hidden">
-                <div className="relative aspect-video bg-gray-100">
+              <Card key={video.id} className="border border-amber-900/15 bg-stone-900 shadow-md overflow-hidden">
+                <div className="relative aspect-video bg-stone-800/50">
                   {videoId ? (
                     <img
                       src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
@@ -277,7 +257,7 @@ export default function VideosPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Video className="w-12 h-12 text-gray-400" />
+                      <Video className="w-12 h-12 text-stone-500" />
                     </div>
                   )}
                   <a
@@ -293,7 +273,7 @@ export default function VideosPage() {
                 </div>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 line-clamp-2">{video.title}</h3>
+                    <h3 className="font-semibold text-white line-clamp-2">{video.title}</h3>
                     <div className="flex gap-1 ml-2">
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(video)}>
                         <Edit className="w-4 h-4" />
@@ -308,8 +288,8 @@ export default function VideosPage() {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm text-blue-600 mb-2">{video.subject.name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm text-amber-500 mb-2">{video.subject.name}</p>
+                  <p className="text-xs text-stone-500">
                     Added by {video.uploader.name} on {new Date(video.createdAt).toLocaleDateString()}
                   </p>
                 </CardContent>

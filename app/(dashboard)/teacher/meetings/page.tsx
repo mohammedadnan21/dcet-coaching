@@ -48,9 +48,10 @@ export default function TeacherMeetingsPage() {
 
   const fetchMeetings = async () => {
     try {
-      const response = await fetch("/api/meetings");
+      const response = await fetch("/api/meetings?limit=100");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      setMeetings(data);
+      setMeetings(data.items);
     } catch (error) {
       console.error("Failed to fetch meetings:", error);
     } finally {
@@ -89,15 +90,23 @@ export default function TeacherMeetingsPage() {
     if (!confirm("Cancel this meeting?")) return;
 
     try {
-      await fetch("/api/meetings", {
+      const response = await fetch("/api/meetings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, cancelled: true }),
       });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Request failed");
+      }
       toast({ title: "Cancelled", description: "Meeting cancelled" });
       fetchMeetings();
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to cancel", variant: "destructive" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to cancel",
+        variant: "destructive",
+      });
     }
   };
 
@@ -115,12 +124,12 @@ export default function TeacherMeetingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meetings</h1>
-          <p className="text-gray-600 mt-1">Schedule and manage live classes</p>
+          <h1 className="text-3xl font-bold text-white">Meetings</h1>
+          <p className="text-stone-400 mt-1">Schedule and manage live classes</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Schedule Meeting
             </Button>
@@ -183,13 +192,13 @@ export default function TeacherMeetingsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Loading...</div>
+        <div className="text-center py-12 text-stone-400">Loading...</div>
       ) : meetings.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Meetings</h3>
-            <p className="text-gray-600">Schedule your first meeting.</p>
+            <Calendar className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2 text-white">No Meetings</h3>
+            <p className="text-stone-400">Schedule your first meeting.</p>
           </CardContent>
         </Card>
       ) : (
@@ -199,20 +208,20 @@ export default function TeacherMeetingsPage() {
             const upcoming = isUpcoming(meeting.scheduledAt);
 
             return (
-              <Card key={meeting.id} className={`border-0 shadow-md ${meeting.cancelled ? "opacity-60" : ""}`}>
+              <Card key={meeting.id} className={`border border-amber-900/15 bg-stone-900 shadow-md ${meeting.cancelled ? "opacity-60" : ""}`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex gap-4">
-                      <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-blue-600" />
+                      <div className="w-14 h-14 bg-amber-900/25 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-amber-500" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-lg">{meeting.title}</h3>
-                          {meeting.cancelled && <Badge className="bg-red-100 text-red-700">Cancelled</Badge>}
-                          {!meeting.cancelled && upcoming && <Badge className="bg-green-100 text-green-700">Upcoming</Badge>}
+                          <h3 className="font-semibold text-lg text-white">{meeting.title}</h3>
+                          {meeting.cancelled && <Badge className="bg-red-900/30 text-red-400 border border-red-700/30">Cancelled</Badge>}
+                          {!meeting.cancelled && upcoming && <Badge className="bg-emerald-900/30 text-emerald-400 border border-emerald-700/30">Upcoming</Badge>}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-stone-400">
                           <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{date}</span>
                           <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{time}</span>
                         </div>
@@ -221,11 +230,11 @@ export default function TeacherMeetingsPage() {
                     {!meeting.cancelled && upcoming && (
                       <div className="flex gap-2">
                         <a href={meeting.zoomLink} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Button size="sm" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
                             <Video className="w-4 h-4 mr-1" />Join
                           </Button>
                         </a>
-                        <Button size="sm" variant="outline" className="text-red-500" onClick={() => handleCancel(meeting.id)}>
+                        <Button size="sm" variant="outline" className="text-red-500 border-amber-900/20" onClick={() => handleCancel(meeting.id)}>
                           <XCircle className="w-4 h-4 mr-1" />Cancel
                         </Button>
                       </div>

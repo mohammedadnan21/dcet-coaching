@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trophy, Medal, Award, User } from "lucide-react";
+import { Trophy, Medal, Award } from "lucide-react";
 
 interface Test {
   id: string;
@@ -49,6 +49,7 @@ export default function StudentRankingsPage() {
   const fetchTests = async () => {
     try {
       const response = await fetch("/api/tests");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       const rankedTests = data.filter((t: Test) => t.showRanking);
       setTests(rankedTests);
@@ -66,13 +67,10 @@ export default function StudentRankingsPage() {
     setLoadingRankings(true);
     try {
       const response = await fetch(`/api/tests/rankings?testId=${testId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRankings(data.rankings);
-        setTestTitle(data.testTitle);
-      } else {
-        setRankings([]);
-      }
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setRankings(data.rankings);
+      setTestTitle(data.testTitle);
     } catch (error) {
       console.error("Failed to fetch rankings:", error);
       setRankings([]);
@@ -85,23 +83,23 @@ export default function StudentRankingsPage() {
     if (rank === 1)
       return <Trophy className="w-6 h-6 text-yellow-500" />;
     if (rank === 2)
-      return <Medal className="w-6 h-6 text-gray-400" />;
+      return <Medal className="w-6 h-6 text-stone-400" />;
     if (rank === 3)
       return <Award className="w-6 h-6 text-amber-600" />;
-    return <span className="text-gray-500 font-bold">#{rank}</span>;
+    return <span className="text-stone-500 font-bold">#{rank}</span>;
   };
 
   const getRankBg = (rank: number) => {
-    if (rank === 1) return "bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200";
-    if (rank === 2) return "bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200";
-    if (rank === 3) return "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200";
-    return "bg-white border-gray-100";
+    if (rank === 1) return "bg-gradient-to-r from-amber-900/40 to-amber-800/20 border-amber-700/40";
+    if (rank === 2) return "bg-stone-800/50 border-stone-600";
+    if (rank === 3) return "bg-gradient-to-r from-amber-900/30 to-orange-950/30 border-amber-700/35";
+    return "bg-stone-900 border border-amber-900/15";
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-stone-500">Loading...</p>
       </div>
     );
   }
@@ -110,12 +108,12 @@ export default function StudentRankingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Rankings</h1>
-          <p className="text-gray-600 mt-1">See how you compare with other students</p>
+          <h1 className="text-3xl font-bold text-white">Rankings</h1>
+          <p className="text-stone-400 mt-1">See how you compare with other students</p>
         </div>
         {tests.length > 0 && (
           <Select value={selectedTest} onValueChange={setSelectedTest}>
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-[250px] border-amber-900/20 bg-stone-900 text-white">
               <SelectValue placeholder="Select a test" />
             </SelectTrigger>
             <SelectContent>
@@ -130,30 +128,30 @@ export default function StudentRankingsPage() {
       </div>
 
       {tests.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Rankings Available</h3>
-            <p className="text-gray-600">
+            <Trophy className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Rankings Available</h3>
+            <p className="text-stone-400">
               Rankings will appear once you take tests with ranking enabled.
             </p>
           </CardContent>
         </Card>
       ) : loadingRankings ? (
-        <div className="text-center py-12">Loading rankings...</div>
+        <div className="text-center py-12 text-stone-400">Loading rankings...</div>
       ) : rankings.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
-            <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Rankings Yet</h3>
-            <p className="text-gray-600">Be the first to complete this test!</p>
+            <Trophy className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Rankings Yet</h3>
+            <p className="text-stone-400">Be the first to complete this test!</p>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Trophy className="w-5 h-5 text-amber-400" />
               {testTitle} - Leaderboard
             </CardTitle>
           </CardHeader>
@@ -164,26 +162,26 @@ export default function StudentRankingsPage() {
                   key={entry.rank}
                   className={`flex items-center justify-between p-4 rounded-xl border ${getRankBg(
                     entry.rank
-                  )} ${entry.isCurrentUser ? "ring-2 ring-blue-500" : ""}`}
+                  )} ${entry.isCurrentUser ? "ring-2 ring-amber-500" : ""}`}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 flex items-center justify-center">
                       {getRankIcon(entry.rank)}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <p className="font-semibold text-white flex items-center gap-2">
                         {entry.userName}
                         {entry.isCurrentUser && (
-                          <Badge className="bg-blue-100 text-blue-700">You</Badge>
+                          <Badge className="bg-amber-900/30 text-amber-400 border border-amber-700/30">You</Badge>
                         )}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-stone-500">
                         Score: {entry.score}/{entry.totalMarks}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">{entry.percentage}%</p>
+                    <p className="text-2xl font-bold text-white">{entry.percentage}%</p>
                   </div>
                 </div>
               ))}

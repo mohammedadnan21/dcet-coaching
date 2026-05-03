@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Eye, EyeOff, GraduationCap, Shield, Users, BookOpen } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, Shield, BookOpen } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
@@ -34,13 +34,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        if (result.error === "PENDING_APPROVAL") {
+        if (result.error.includes("PENDING") || result.error === "PENDING_APPROVAL") {
           router.push("/verify-queue");
           return;
         }
         toast({
           title: "Login Failed",
-          description: result.error,
+          description: result.error === "CredentialsSignin" ? "Invalid email or password" : result.error,
           variant: "destructive",
         });
       } else {
@@ -49,10 +49,14 @@ export default function LoginPage() {
           description: "Login successful",
         });
         
-        // Redirect based on role
-        if (activeTab === "admin") {
+        const res = await fetch("/api/auth/session");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const session = await res.json();
+        const role = session?.user?.role;
+
+        if (role === "ADMIN") {
           router.push("/admin");
-        } else if (activeTab === "teacher") {
+        } else if (role === "TEACHER") {
           router.push("/teacher");
         } else {
           router.push("/student");
@@ -82,19 +86,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-stone-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-600/5 rounded-full blur-3xl" />
+      <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <Logo size="lg" />
           </Link>
-          <p className="text-gray-600 mt-2">Sign in to continue learning</p>
+          <p className="text-stone-400 mt-2">Sign in to continue learning</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border border-amber-900/20 bg-stone-900">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-2xl font-bold text-center text-white">Welcome Back</CardTitle>
+            <CardDescription className="text-center text-stone-400">
               Choose your role and sign in
             </CardDescription>
           </CardHeader>
@@ -115,7 +121,7 @@ export default function LoginPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <p className="text-sm text-gray-500 text-center mb-6">
+              <p className="text-sm text-stone-500 text-center mb-6">
                 {roleDescriptions[activeTab as keyof typeof roleDescriptions]}
               </p>
 
@@ -147,14 +153,14 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                <Button type="submit" className="w-full h-11 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
@@ -162,9 +168,9 @@ export default function LoginPage() {
 
             {activeTab !== "admin" && (
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <Link href={`/register?role=${activeTab}`} className="text-blue-600 hover:underline font-medium">
+                <p className="text-sm text-stone-400">
+                  Don&apos;t have an account?{" "}
+                  <Link href={`/register?role=${activeTab}`} className="text-amber-500 hover:text-amber-400 hover:underline font-medium">
                     Create Account
                   </Link>
                 </p>

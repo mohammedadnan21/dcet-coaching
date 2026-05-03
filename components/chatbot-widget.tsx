@@ -70,7 +70,7 @@ export function ChatbotWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform z-50"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform z-50"
       >
         <MessageCircle className="w-6 h-6" />
       </button>
@@ -78,9 +78,9 @@ export function ChatbotWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-80 sm:w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-96 h-[70vh] sm:h-[500px] bg-stone-900 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border border-amber-900/15">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex items-center justify-between">
+      <div className="bg-gradient-to-r from-amber-600 to-amber-800 p-4 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
             <Bot className="w-5 h-5" />
@@ -107,11 +107,11 @@ export function ChatbotWidget() {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4 bg-stone-950" ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            <Bot className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>Hi! Ask me anything about DCET!</p>
+          <div className="text-center text-stone-500 py-8">
+            <Bot className="w-12 h-12 mx-auto mb-2 text-stone-600" />
+            <p className="text-stone-400">Hi! Ask me anything about DCET!</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -123,8 +123,8 @@ export function ChatbotWidget() {
                 <div
                   className={`max-w-[85%] p-3 rounded-2xl text-sm ${
                     msg.isBot
-                      ? "bg-gray-100 text-gray-900 rounded-tl-none"
-                      : "bg-blue-600 text-white rounded-tr-none"
+                      ? "bg-stone-800/50 text-stone-400 rounded-tl-none border border-amber-900/10"
+                      : "bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-tr-none"
                   }`}
                 >
                   {msg.content}
@@ -133,11 +133,11 @@ export function ChatbotWidget() {
             ))}
             {loading && (
               <div className="flex">
-                <div className="bg-gray-100 p-3 rounded-2xl rounded-tl-none">
+                <div className="bg-stone-800/50 p-3 rounded-2xl rounded-tl-none border border-amber-900/10">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <div className="w-2 h-2 bg-stone-500 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 bg-stone-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -147,7 +147,7 @@ export function ChatbotWidget() {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-3 border-t">
+      <div className="p-3 border-t border-amber-900/20 bg-stone-900">
         <div className="flex gap-2">
           <Input
             value={input}
@@ -155,13 +155,13 @@ export function ChatbotWidget() {
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Ask a question..."
             disabled={loading}
-            className="flex-1 text-sm"
+            className="flex-1 text-sm border-amber-900/20 bg-stone-800/50 text-white placeholder:text-stone-500"
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || loading}
             size="icon"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>

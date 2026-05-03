@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = rateLimit(`submit:${session.user.id}`, 3, 60_000);
+    if (!rl.success) {
+      return NextResponse.json({ error: "Too many submissions. Please wait." }, { status: 429 });
     }
 
     const body = await request.json();
@@ -73,10 +79,14 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    const percentage = attempt.totalMarks > 0
+      ? Math.round((score / attempt.totalMarks) * 100)
+      : 0;
+
     return NextResponse.json({
       score,
       totalMarks: attempt.totalMarks,
-      percentage: Math.round((score / attempt.totalMarks) * 100),
+      percentage,
       results,
     });
   } catch (error) {

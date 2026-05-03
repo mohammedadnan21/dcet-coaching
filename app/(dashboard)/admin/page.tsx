@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCachedFetch } from "@/hooks/use-cached-fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,120 +25,100 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch("/api/admin/stats");
-      const data = await response.json();
-      setStats(data);
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: stats, loading } = useCachedFetch<Stats>("/api/admin/stats");
 
   const statCards = [
     {
       title: "Total Students",
       value: stats?.totalStudents || 0,
       icon: GraduationCap,
-      color: "bg-blue-500",
-      bgColor: "bg-blue-50",
+      iconColor: "text-amber-500",
+      bgColor: "bg-amber-900/20",
     },
     {
       title: "Total Teachers",
       value: stats?.totalTeachers || 0,
       icon: Users,
-      color: "bg-green-500",
-      bgColor: "bg-green-50",
+      iconColor: "text-green-500",
+      bgColor: "bg-green-900/20",
     },
     {
       title: "Pending Approvals",
       value: stats?.pendingApprovals || 0,
       icon: UserCheck,
-      color: "bg-amber-500",
-      bgColor: "bg-amber-50",
+      iconColor: "text-orange-500",
+      bgColor: "bg-orange-900/20",
       highlight: (stats?.pendingApprovals || 0) > 0,
     },
     {
       title: "Active Subjects",
       value: stats?.totalSubjects || 0,
       icon: BookOpen,
-      color: "bg-purple-500",
-      bgColor: "bg-purple-50",
+      iconColor: "text-purple-400",
+      bgColor: "bg-purple-900/20",
     },
     {
       title: "Total Videos",
       value: stats?.totalVideos || 0,
       icon: Video,
-      color: "bg-pink-500",
-      bgColor: "bg-pink-50",
+      iconColor: "text-pink-400",
+      bgColor: "bg-pink-900/20",
     },
     {
       title: "Upcoming Meetings",
       value: stats?.upcomingMeetings || 0,
       icon: Calendar,
-      color: "bg-cyan-500",
-      bgColor: "bg-cyan-50",
+      iconColor: "text-cyan-400",
+      bgColor: "bg-cyan-900/20",
     },
     {
       title: "Active Tests",
       value: stats?.activeTests || 0,
       icon: ClipboardList,
-      color: "bg-indigo-500",
-      bgColor: "bg-indigo-50",
+      iconColor: "text-indigo-400",
+      bgColor: "bg-indigo-900/20",
     },
   ];
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Welcome back! Here's an overview of your platform.
+        <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+        <p className="text-stone-400 mt-1">
+          Welcome back! Here&apos;s an overview of your platform.
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
           <Card
             key={index}
-            className={`border-0 shadow-md ${stat.highlight ? "ring-2 ring-amber-400" : ""}`}
+            className={`border border-amber-900/15 bg-stone-900 shadow-md ${stat.highlight ? "ring-2 ring-amber-600/50" : ""}`}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-sm font-medium text-stone-400">{stat.title}</p>
+                  <p className="text-3xl font-bold text-white mt-1">
                     {loading ? "..." : stat.value}
                   </p>
                 </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 text-${stat.color.replace("bg-", "")}`} />
+                  <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                 </div>
               </div>
               {stat.highlight && (
-                <Badge className="mt-3 bg-amber-100 text-amber-700">Needs Attention</Badge>
+                <Badge className="mt-3 bg-amber-900/30 text-amber-400 border border-amber-700/30">Needs Attention</Badge>
               )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <Card className="border-0 shadow-md">
+      <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <TrendingUp className="w-5 h-5 text-amber-500" />
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -146,31 +126,31 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <a
               href="/admin/approvals"
-              className="p-4 bg-amber-50 rounded-xl text-center hover:bg-amber-100 transition-colors"
+              className="p-4 bg-amber-900/15 rounded-xl text-center hover:bg-amber-900/25 transition-colors border border-amber-900/10"
             >
-              <UserCheck className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-              <p className="font-medium text-gray-900">Review Approvals</p>
+              <UserCheck className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+              <p className="font-medium text-white">Review Approvals</p>
             </a>
             <a
               href="/admin/subjects"
-              className="p-4 bg-purple-50 rounded-xl text-center hover:bg-purple-100 transition-colors"
+              className="p-4 bg-purple-900/15 rounded-xl text-center hover:bg-purple-900/25 transition-colors border border-purple-900/10"
             >
-              <BookOpen className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <p className="font-medium text-gray-900">Manage Subjects</p>
+              <BookOpen className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+              <p className="font-medium text-white">Manage Subjects</p>
             </a>
             <a
               href="/admin/meetings"
-              className="p-4 bg-cyan-50 rounded-xl text-center hover:bg-cyan-100 transition-colors"
+              className="p-4 bg-cyan-900/15 rounded-xl text-center hover:bg-cyan-900/25 transition-colors border border-cyan-900/10"
             >
-              <Calendar className="w-8 h-8 text-cyan-600 mx-auto mb-2" />
-              <p className="font-medium text-gray-900">Schedule Meeting</p>
+              <Calendar className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+              <p className="font-medium text-white">Schedule Meeting</p>
             </a>
             <a
               href="/admin/tests"
-              className="p-4 bg-indigo-50 rounded-xl text-center hover:bg-indigo-100 transition-colors"
+              className="p-4 bg-indigo-900/15 rounded-xl text-center hover:bg-indigo-900/25 transition-colors border border-indigo-900/10"
             >
-              <ClipboardList className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
-              <p className="font-medium text-gray-900">Create Test</p>
+              <ClipboardList className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+              <p className="font-medium text-white">Create Test</p>
             </a>
           </div>
         </CardContent>

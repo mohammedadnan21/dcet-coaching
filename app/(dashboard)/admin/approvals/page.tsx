@@ -16,6 +16,13 @@ interface PendingUser {
   createdAt: string;
 }
 
+interface PendingUsersResponse {
+  items: PendingUser[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export default function ApprovalsPage() {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +34,10 @@ export default function ApprovalsPage() {
 
   const fetchPendingUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users?status=PENDING");
-      const data = await response.json();
-      setUsers(data);
+      const response = await fetch("/api/admin/users?status=PENDING&limit=100");
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data: PendingUsersResponse = await response.json();
+      setUsers(data.items);
     } catch (error) {
       console.error("Failed to fetch pending users:", error);
     } finally {
@@ -72,51 +80,51 @@ export default function ApprovalsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-stone-950 min-h-full">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Pending Approvals</h1>
-        <p className="text-gray-600 mt-1">Review and approve new user registrations</p>
+        <h1 className="text-3xl font-bold text-white">Pending Approvals</h1>
+        <p className="text-stone-400 mt-1">Review and approve new user registrations</p>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading pending approvals...</p>
+          <p className="text-stone-500">Loading pending approvals...</p>
         </div>
       ) : users.length === 0 ? (
-        <Card className="border-0 shadow-md">
+        <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">All Caught Up!</h3>
-            <p className="text-gray-600">No pending approvals at the moment.</p>
+            <h3 className="text-xl font-semibold text-white mb-2">All Caught Up!</h3>
+            <p className="text-stone-400">No pending approvals at the moment.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {users.map((user) => (
-            <Card key={user.id} className="border-0 shadow-md">
+            <Card key={user.id} className="border border-amber-900/15 bg-stone-900 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-amber-900/25 rounded-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-amber-500" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{user.name}</CardTitle>
-                      <Badge className="mt-1 bg-blue-100 text-blue-700">{user.role}</Badge>
+                      <CardTitle className="text-lg text-white">{user.name}</CardTitle>
+                      <Badge className="mt-1 bg-amber-900/30 text-amber-400 border border-amber-700/30">{user.role}</Badge>
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-stone-400">
                   <Mail className="w-4 h-4" />
                   <span className="truncate">{user.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-stone-400">
                   <Phone className="w-4 h-4" />
                   <span>{user.phone}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-stone-400">
                   <Calendar className="w-4 h-4" />
                   <span>Applied {new Date(user.createdAt).toLocaleDateString()}</span>
                 </div>

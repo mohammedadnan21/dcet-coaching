@@ -17,6 +17,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Question ID and content are required" }, { status: 400 });
     }
 
+    const question = await prisma.question.findUnique({ where: { id: questionId } });
+    if (!question) {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+    if (question.visibility === "PRIVATE_TEACHER" && question.targetId && question.targetId !== session.user.id && session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "You are not authorized to answer this question" }, { status: 403 });
+    }
+
     const answer = await prisma.answer.create({
       data: {
         questionId,

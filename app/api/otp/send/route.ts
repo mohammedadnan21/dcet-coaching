@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendOTPEmail, generateOTP } from "@/lib/email";
 import { registerSchema } from "@/lib/validations";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`otp-send:${ip}`, 5, 60_000);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again after a minute." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const validation = registerSchema.safeParse(body);
 

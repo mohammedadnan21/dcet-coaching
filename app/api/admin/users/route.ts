@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
+    const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (role) {
       where.role = role;
@@ -28,28 +31,33 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
         { phone: { contains: search } },
       ];
     }
 
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        isVerified: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          status: true,
+          isVerified: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.count({ where }),
+    ]);
 
-    return NextResponse.json(users);
+    return NextResponse.json({ items: users, total, page, limit });
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
@@ -71,7 +79,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const validStatuses = ["PENDING", "APPROVED", "REJECTED"];
+    const validRoles = ["STUDENT", "TEACHER", "ADMIN"];
+
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "Invalid status. Must be PENDING, APPROVED, or REJECTED" }, { status: 400 });
+    }
+
+    if (role && !validRoles.includes(role)) {
+      return NextResponse.json({ error: "Invalid role. Must be STUDENT, TEACHER, or ADMIN" }, { status: 400 });
+    }
+
+    const updateData: Record<string, string> = {};
 
     if (status) {
       updateData.status = status;

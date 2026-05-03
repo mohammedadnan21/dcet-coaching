@@ -26,9 +26,7 @@ import {
   Globe,
   Cpu,
   Shield,
-  Play,
   Sparkles,
-  ArrowRight,
 } from "lucide-react";
 
 const motivationQuotes = [
@@ -54,7 +52,7 @@ const achievements = [
   { number: "48", label: "DCET Rank", sublabel: "All Karnataka" },
   { number: "2nd", label: "Hassan District", sublabel: "Top Performer" },
   { number: "9.8", label: "Diploma CGPA", sublabel: "EEE Branch" },
-  { number: "9.09", label: "Current CGPA", sublabel: "RVCE CSE" },
+  { number: "9.10", label: "Current CGPA", sublabel: "RVCE CSE" },
 ];
 
 const features = [
@@ -66,7 +64,6 @@ const features = [
   { icon: Users, title: "Community", description: "Connect with fellow DCET aspirants" },
 ];
 
-// Memoized 3D Card Component for performance
 const Card3D = memo(function Card3D({ 
   children, 
   className = "",
@@ -81,11 +78,7 @@ const Card3D = memo(function Card3D({
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
-    
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
-
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       if (!cardRef.current) return;
       const card = cardRef.current;
@@ -101,19 +94,13 @@ const Card3D = memo(function Card3D({
   }, [intensity]);
 
   const handleMouseLeave = useCallback(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (!cardRef.current) return;
     cardRef.current.style.transform = "perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)";
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
   return (
@@ -129,7 +116,6 @@ const Card3D = memo(function Card3D({
   );
 });
 
-// Memoized Feature Card for performance
 const FeatureCard = memo(function FeatureCard({ 
   feature, 
   index 
@@ -139,20 +125,19 @@ const FeatureCard = memo(function FeatureCard({
 }) {
   return (
     <Card3D intensity={15}>
-      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-shadow duration-300 h-full">
+      <Card className="bg-stone-900 border border-amber-900/20 hover:border-amber-700/40 shadow-sm hover:shadow-xl hover:shadow-amber-900/10 transition-all duration-300 h-full">
         <CardContent className="p-6">
-          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-5">
-            <feature.icon className="w-7 h-7 text-blue-500" />
+          <div className="w-14 h-14 bg-amber-900/20 rounded-2xl flex items-center justify-center mb-5">
+            <feature.icon className="w-7 h-7 text-amber-500" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
-          <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+          <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+          <p className="text-stone-400 text-sm leading-relaxed">{feature.description}</p>
         </CardContent>
       </Card>
     </Card3D>
   );
 });
 
-// Memoized Contact Card
 const ContactCard = memo(function ContactCard({ 
   contact 
 }: { 
@@ -160,18 +145,18 @@ const ContactCard = memo(function ContactCard({
 }) {
   return (
     <Card3D intensity={20}>
-      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 text-center h-full">
+      <Card className="bg-stone-900 border border-amber-900/20 hover:border-amber-700/40 shadow-sm hover:shadow-lg transition-all duration-300 text-center h-full">
         <CardContent className="p-8">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <contact.icon className="w-7 h-7 text-blue-500" />
+          <div className="w-16 h-16 bg-amber-900/20 rounded-full flex items-center justify-center mx-auto mb-5">
+            <contact.icon className="w-7 h-7 text-amber-500" />
           </div>
-          <h3 className="font-bold text-gray-900 text-lg mb-2">{contact.title}</h3>
+          <h3 className="font-bold text-white text-lg mb-2">{contact.title}</h3>
           {contact.href ? (
-            <a href={contact.href} className="text-blue-600 hover:text-blue-700 hover:underline text-sm">
+            <a href={contact.href} className="text-amber-400 hover:text-amber-300 hover:underline text-sm">
               {contact.value}
             </a>
           ) : (
-            <p className="text-gray-600 text-sm">{contact.value}</p>
+            <p className="text-stone-400 text-sm">{contact.value}</p>
           )}
         </CardContent>
       </Card>
@@ -179,7 +164,6 @@ const ContactCard = memo(function ContactCard({
   );
 });
 
-// Memoized Stats Card
 const StatsCard = memo(function StatsCard({ 
   item, 
   index 
@@ -189,10 +173,10 @@ const StatsCard = memo(function StatsCard({
 }) {
   return (
     <Card3D intensity={25}>
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center text-white border border-white/20 hover:bg-white/15 transition-colors">
-        <p className="text-4xl md:text-5xl font-bold mb-1">{item.number}</p>
-        <p className="text-blue-100 font-semibold">{item.label}</p>
-        <p className="text-blue-200/80 text-sm mt-1">{item.sublabel}</p>
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center text-white border border-amber-500/20 hover:border-amber-500/40 hover:bg-white/15 transition-colors">
+        <p className="text-4xl md:text-5xl font-bold mb-1 text-amber-400">{item.number}</p>
+        <p className="text-amber-200/90 font-semibold">{item.label}</p>
+        <p className="text-stone-400 text-sm mt-1">{item.sublabel}</p>
       </div>
     </Card3D>
   );
@@ -209,24 +193,24 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation - Clean & Professional */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+    <div className="min-h-screen bg-stone-950">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Logo size="md" />
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#about" className="text-gray-600 hover:text-blue-600 transition font-medium">About</a>
-              <a href="#features" className="text-gray-600 hover:text-blue-600 transition font-medium">Features</a>
-              <a href="#skills" className="text-gray-600 hover:text-blue-600 transition font-medium">Skills</a>
-              <a href="#contact" className="text-gray-600 hover:text-blue-600 transition font-medium">Contact</a>
+              <a href="#about" className="text-stone-400 hover:text-amber-400 transition font-medium">About</a>
+              <a href="#features" className="text-stone-400 hover:text-amber-400 transition font-medium">Features</a>
+              <a href="#skills" className="text-stone-400 hover:text-amber-400 transition font-medium">Skills</a>
+              <a href="#contact" className="text-stone-400 hover:text-amber-400 transition font-medium">Contact</a>
             </div>
             <div className="flex items-center space-x-3">
               <Link href="/login">
-                <Button variant="outline" className="hidden sm:flex">Login</Button>
+                <Button variant="outline" className="hidden sm:flex border-amber-700/50 text-amber-400 hover:bg-amber-900/20 hover:text-amber-300">Login</Button>
               </Link>
               <Link href="/register?role=student">
-                <Button className="bg-blue-600 hover:bg-blue-700">Get Started</Button>
+                <Button className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-900/30">Get Started</Button>
               </Link>
             </div>
           </div>
@@ -234,36 +218,35 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-blue-50 via-white to-amber-50 relative overflow-hidden">
-        {/* Subtle Background Elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
+      <section className="pt-24 pb-16 md:pt-32 md:pb-24 relative overflow-hidden">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-600/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-0 px-4 py-1.5">
-                  <Star className="w-4 h-4 mr-1.5 fill-amber-500 text-amber-500" /> DCET Rank 48 | RVCE CSE
+                <Badge className="bg-amber-900/30 text-amber-400 hover:bg-amber-900/40 border border-amber-700/30 px-4 py-1.5">
+                  <Star className="w-4 h-4 mr-1.5 fill-amber-500 text-amber-500" /> DCET Mentorship by Rank 48 (RVCE)
                 </Badge>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  Crack DCET with{" "}
-                  <span className="text-blue-600">Rank 48</span>{" "}
-                  Mentorship
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                  <span className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 bg-clip-text text-transparent">Wintrix</span>{" "}
+                  Academy
                 </h1>
-                <p className="text-lg md:text-xl text-gray-600 max-w-xl leading-relaxed">
-                  Learn from Mohammed Adnan, who secured All-Karnataka Rank 48 in DCET and is now pursuing CSE at R.V. College of Engineering.
+                <p className="text-lg md:text-xl text-stone-400 max-w-xl leading-relaxed">
+                  <span className="text-amber-400 font-medium">Guidance. Strategy. Success.</span> Learn from Mohammed Adnan, who secured All-Karnataka Rank 48 in DCET and is now pursuing CSE at R.V. College of Engineering.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
                 <Link href="/register?role=student">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 h-12 px-8 shadow-lg shadow-blue-500/25">
+                  <Button size="lg" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white h-12 px-8 shadow-lg shadow-amber-900/40">
                     <GraduationCap className="w-5 h-5 mr-2" />
                     Join as Student
                   </Button>
                 </Link>
                 <Link href="/register?role=teacher">
-                  <Button size="lg" variant="outline" className="h-12 px-8">
+                  <Button size="lg" variant="outline" className="h-12 px-8 border-amber-700/50 text-amber-400 hover:bg-amber-900/20">
                     <BookOpen className="w-5 h-5 mr-2" />
                     Join as Teacher
                   </Button>
@@ -272,54 +255,53 @@ export default function LandingPage() {
               <div className="flex items-center gap-8 pt-4">
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md">
+                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 border-2 border-stone-950 flex items-center justify-center text-white text-xs font-bold shadow-md">
                       {String.fromCharCode(64 + i)}
                     </div>
                   ))}
                 </div>
-                <p className="text-gray-600">
-                  <span className="font-bold text-gray-900">500+</span> Students enrolled
+                <p className="text-stone-400">
+                  <span className="font-bold text-white">500+</span> Students enrolled
                 </p>
               </div>
             </div>
 
-            {/* Founder Photo with Subtle 3D */}
+            {/* Founder Photo */}
             <div className="relative">
               <Card3D intensity={30} className="relative mx-auto w-fit">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-amber-400 rounded-3xl blur-3xl opacity-20 scale-110" />
-                <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-2 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-amber-800 rounded-3xl blur-3xl opacity-15 scale-110" />
+                <div className="relative bg-gradient-to-br from-stone-800 to-stone-900 rounded-3xl p-2 shadow-2xl border border-amber-900/30">
                   <Image
                     src="/founder.png"
                     alt="Mohammed Adnan - Founder"
                     width={400}
                     height={500}
-                    className="rounded-2xl object-cover"
+                    className="rounded-2xl object-cover w-full max-w-[400px] h-auto"
                     priority
                     loading="eager"
                   />
                 </div>
                 
-                {/* Floating Cards - Subtle Animation */}
-                <div className="absolute -left-8 top-1/4 bg-white rounded-xl shadow-lg p-3 animate-float">
+                <div className="absolute -left-4 md:-left-8 top-1/4 bg-stone-900 border border-amber-800/30 rounded-xl shadow-lg p-3 animate-float hidden sm:block">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                      <Trophy className="w-5 h-5 text-amber-600" />
+                    <div className="w-10 h-10 bg-amber-900/30 rounded-lg flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-amber-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">48</p>
-                      <p className="text-xs text-gray-500">DCET Rank</p>
+                      <p className="text-2xl font-bold text-white">48</p>
+                      <p className="text-xs text-stone-400">DCET Rank</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="absolute -right-8 bottom-1/4 bg-white rounded-xl shadow-lg p-3 animate-float" style={{ animationDelay: "1s" }}>
+                <div className="absolute -right-4 md:-right-8 bottom-1/4 bg-stone-900 border border-amber-800/30 rounded-xl shadow-lg p-3 animate-float hidden sm:block" style={{ animationDelay: "1s" }}>
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Award className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-green-900/30 rounded-lg flex items-center justify-center">
+                      <Award className="w-5 h-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-lg font-bold text-gray-900">Red Hat</p>
-                      <p className="text-xs text-gray-500">Placed at</p>
+                      <p className="text-lg font-bold text-white">Red Hat</p>
+                      <p className="text-xs text-stone-400">Placed at</p>
                     </div>
                   </div>
                 </div>
@@ -329,9 +311,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section - Clean 3D Glass Cards */}
-      <section className="py-14 bg-gradient-to-r from-blue-600 to-blue-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
+      {/* Stats Section */}
+      <section className="py-14 bg-gradient-to-r from-stone-900 via-stone-900 to-stone-900 relative overflow-hidden border-y border-amber-900/20">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(180,83,9,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(180,83,9,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -343,51 +325,51 @@ export default function LandingPage() {
       </section>
 
       {/* Motivation Quote */}
-      <section className="py-10 bg-gradient-to-r from-amber-50 to-orange-50 border-y border-amber-100">
+      <section className="py-10 bg-stone-900/50 border-b border-amber-900/20">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <Sparkles className="w-6 h-6 text-amber-500 mx-auto mb-3" />
-          <p className="text-lg md:text-xl text-gray-700 italic leading-relaxed">
-            "{motivationQuotes[currentQuote].quote}"
+          <p className="text-lg md:text-xl text-stone-300 italic leading-relaxed">
+            &ldquo;{motivationQuotes[currentQuote].quote}&rdquo;
           </p>
-          <p className="mt-3 text-amber-700 font-semibold">
+          <p className="mt-3 text-amber-500 font-semibold">
             — {motivationQuotes[currentQuote].author}
           </p>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="py-20 bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">About the Founder</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">About the Founder</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                 Mohammed Adnan
               </h2>
-              <div className="prose prose-lg text-gray-600 space-y-4">
+              <div className="prose prose-lg text-stone-400 space-y-4">
                 <p>
-                  I completed my SSLC at CKS, scoring <strong>91.52%</strong>, and later chose to pursue a 
+                  I completed my SSLC at CKS, scoring <strong className="text-white">91.52%</strong>, and later chose to pursue a 
                   Diploma in Electrical and Electronics Engineering (EEE). With consistent dedication and 
-                  hard work, I graduated with an impressive <strong>CGPA of 9.8</strong>.
+                  hard work, I graduated with an impressive <strong className="text-white">CGPA of 9.8</strong>.
                 </p>
                 <p>
-                  Aiming higher, I prepared intensely for the DCET exam and secured an <strong>All-India 
-                  Rank of 48</strong> across Karnataka and <strong>2nd Rank in Hassan district</strong>. 
+                  Aiming higher, I prepared intensely for the DCET exam and secured <strong className="text-amber-400">State
+                  Rank 48</strong> across Karnataka and <strong className="text-amber-400">2nd Rank in Hassan district</strong>. 
                   This achievement opened the door for me to join one of the top engineering institutions 
-                  in Bengaluru — <strong>R.V. College of Engineering (RVCE)</strong>.
+                  in Bengaluru — <strong className="text-white">R.V. College of Engineering (RVCE)</strong>.
                 </p>
                 <p>
                   My journey of continuous learning and growth led me to secure a placement at
-                  <strong> Red Hat</strong>, a renowned US-based technology company.
+                  <strong className="text-white"> Red Hat</strong>, a renowned US-based technology company.
                 </p>
               </div>
             </div>
             <div>
               <Card3D intensity={20}>
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-0 shadow-lg">
+                <Card className="bg-stone-900 border border-amber-900/20">
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-amber-500" />
                       Academic Journey
                     </h3>
                     <div className="space-y-4">
@@ -395,14 +377,14 @@ export default function LandingPage() {
                         { year: "SSLC", score: "91.52%", school: "CKS" },
                         { year: "Diploma (EEE)", score: "9.8 CGPA", school: "Polytechnic" },
                         { year: "DCET", score: "Rank 48", school: "All Karnataka" },
-                        { year: "B.E. (CSE)", score: "9.09 CGPA", school: "RVCE Bengaluru" },
+                        { year: "B.E. (CSE)", score: "9.10 CGPA", school: "RVCE Bengaluru" },
                       ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between py-2 border-b border-blue-200/50 last:border-0">
+                        <div key={index} className="flex items-center justify-between py-2 border-b border-amber-900/20 last:border-0">
                           <div>
-                            <p className="font-semibold text-gray-900">{item.year}</p>
-                            <p className="text-sm text-gray-600">{item.school}</p>
+                            <p className="font-semibold text-white">{item.year}</p>
+                            <p className="text-sm text-stone-500">{item.school}</p>
                           </div>
-                          <Badge className="bg-blue-600 hover:bg-blue-600">{item.score}</Badge>
+                          <Badge className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white border-0">{item.score}</Badge>
                         </div>
                       ))}
                     </div>
@@ -414,15 +396,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section - Clean 3D Cards */}
-      <section id="features" className="py-20 bg-gray-50">
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-stone-900/50 border-y border-amber-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">Platform Features</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">Platform Features</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
               Everything You Need to Succeed
             </h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-stone-400 max-w-2xl mx-auto">
               Our comprehensive platform provides all the tools and resources you need to crack DCET with flying colors.
             </p>
           </div>
@@ -435,28 +417,28 @@ export default function LandingPage() {
       </section>
 
       {/* Skills Section */}
-      <section id="skills" className="py-20 bg-white">
+      <section id="skills" className="py-20 bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-amber-100 text-amber-800 border-0">Technical Expertise</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">Technical Expertise</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
               Skills & Competencies
             </h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-stone-400 max-w-2xl mx-auto">
               Strong foundation in programming and computer science fundamentals
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {skills.map((skill, index) => (
               <Card3D key={index} intensity={25}>
-                <div className="group p-4 bg-gray-50 rounded-xl hover:bg-blue-50 hover:shadow-md transition-all cursor-pointer border border-gray-100">
+                <div className="group p-4 bg-stone-900 rounded-xl hover:bg-stone-800 hover:shadow-md hover:shadow-amber-900/10 transition-all cursor-pointer border border-amber-900/10 hover:border-amber-700/30">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                      <skill.icon className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-amber-900/20 rounded-lg shadow-sm flex items-center justify-center group-hover:bg-amber-900/30 transition-colors">
+                      <skill.icon className="w-5 h-5 text-amber-500" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{skill.name}</p>
-                      <p className="text-xs text-gray-500">{skill.category}</p>
+                      <p className="font-semibold text-white">{skill.name}</p>
+                      <p className="text-xs text-stone-500">{skill.category}</p>
                     </div>
                   </div>
                 </div>
@@ -467,23 +449,23 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-800">
+      <section className="py-20 bg-gradient-to-br from-stone-900 via-amber-950/30 to-stone-900 border-y border-amber-900/20">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to Start Your DCET Journey?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-stone-400 mb-8 max-w-2xl mx-auto">
             Join hundreds of students who are preparing for DCET with expert guidance and proven strategies.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/register?role=student">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 shadow-lg">
+              <Button size="lg" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white h-12 px-8 shadow-lg shadow-amber-900/40">
                 Start Learning Today
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/login?role=admin">
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 h-12 px-8">
+              <Button size="lg" variant="outline" className="text-amber-400 border-amber-700/50 hover:bg-amber-900/20 h-12 px-8">
                 <Shield className="w-5 h-5 mr-2" />
                 Admin Login
               </Button>
@@ -492,12 +474,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Contact Section - Clean 3D Cards */}
-      <section id="contact" className="py-20 bg-gray-50">
+      {/* Contact Section */}
+      <section id="contact" className="py-20 bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-blue-100 text-blue-800 border-0">Get in Touch</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">Get in Touch</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
               Contact Us
             </h2>
           </div>
@@ -513,38 +495,72 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Team Section */}
+      <section className="py-16 bg-stone-950 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              Team <span className="gradient-text-gold">WINTRIX</span>
+            </h2>
+            <p className="text-stone-500 text-sm max-w-md mx-auto">
+              Building WINTRIX to guide serious students towards success.
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl p-6 sm:p-8 text-center max-w-xs w-full transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(180,83,9,0.15)] hover:border-amber-700/40">
+              <div className="relative mx-auto w-28 h-28 mb-5">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500 to-amber-800 opacity-20 group-hover:opacity-35 transition-opacity blur-sm scale-110" />
+                <Image
+                  src="/team-jnanesh.png"
+                  alt="Jnanesh Gowda"
+                  width={112}
+                  height={112}
+                  className="relative rounded-full object-cover w-28 h-28 border-2 border-amber-700/40"
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-1">Jnanesh Gowda</h3>
+              <p className="text-amber-400 text-sm font-medium mb-2">Marketing & Outreach Lead</p>
+              <p className="text-stone-500 text-xs leading-relaxed">
+                Handles student communication and outreach
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-stone-900 border-t border-amber-900/20 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <Logo size="lg" className="mb-4 [&_span]:text-white [&_*]:text-white" />
-              <p className="text-gray-400 max-w-md">
-                Premier DCET coaching platform founded by Mohammed Adnan, who secured All-Karnataka Rank 48 
-                and is currently pursuing CSE at RVCE.
+              <Logo size="lg" className="mb-4" />
+              <p className="text-stone-500 max-w-md">
+                Wintrix Academy — Guidance. Strategy. Success. Founded by Mohammed Adnan (DCET Rank 48, RVCE CSE).
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#about" className="hover:text-white transition">About</a></li>
-                <li><a href="#features" className="hover:text-white transition">Features</a></li>
-                <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
-                <li><Link href="/login" className="hover:text-white transition">Login</Link></li>
+              <h4 className="font-bold text-amber-400 mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-stone-500">
+                <li><a href="#about" className="hover:text-amber-400 transition">About</a></li>
+                <li><a href="#features" className="hover:text-amber-400 transition">Features</a></li>
+                <li><a href="#skills" className="hover:text-amber-400 transition">Skills</a></li>
+                <li><a href="#contact" className="hover:text-amber-400 transition">Contact</a></li>
+                <li><Link href="/login" className="hover:text-amber-400 transition">Login</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">For Users</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/register?role=student" className="hover:text-white transition">Student Registration</Link></li>
-                <li><Link href="/register?role=teacher" className="hover:text-white transition">Teacher Registration</Link></li>
-                <li><Link href="/login?role=admin" className="hover:text-white transition">Admin Portal</Link></li>
+              <h4 className="font-bold text-amber-400 mb-4">For Users</h4>
+              <ul className="space-y-2 text-stone-500">
+                <li><Link href="/register?role=student" className="hover:text-amber-400 transition">Student Registration</Link></li>
+                <li><Link href="/register?role=teacher" className="hover:text-amber-400 transition">Teacher Registration</Link></li>
+                <li><Link href="/login?role=admin" className="hover:text-amber-400 transition">Admin Portal</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} DCET Coaching. All rights reserved.</p>
-            <p className="mt-2 text-sm">Made with ❤️ by Mohammed Adnan (Rank 48)</p>
+          <div className="border-t border-amber-900/20 mt-8 pt-8 text-center text-stone-500">
+            <p>&copy; {new Date().getFullYear()} Wintrix Academy. All rights reserved.</p>
+            <p className="mt-2 text-sm">Founded by Mohammed Adnan (DCET Rank 48, RVCE)</p>
           </div>
         </div>
       </footer>

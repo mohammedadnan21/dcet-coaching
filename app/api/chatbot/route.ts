@@ -3,15 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { rateLimit } from "@/lib/rate-limit";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-const SYSTEM_PROMPT = `You are an AI assistant for DCET Coaching, a premier coaching platform for Diploma CET (DCET) preparation in Karnataka, India.
+const SYSTEM_PROMPT = `You are an AI assistant for Wintrix Academy, a premier coaching platform for Diploma CET (DCET) preparation in Karnataka, India.
 
 About the platform:
 - Founded by Mohammed Adnan, who secured All-India Rank 48 in DCET
 - Currently studying CSE at R.V. College of Engineering (RVCE)
 - Placed at Red Hat
+- Tagline: Guidance. Strategy. Success.
 
 You help students with:
 1. DCET exam preparation tips and strategies
@@ -32,11 +34,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { success } = rateLimit(`chatbot:${session.user.id}`, 20, 60_000);
+    if (!success) {
+      return NextResponse.json(
+        { error: "You're sending messages too fast. Please wait a moment." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { message } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
+    }
+
+    if (message.length > 2000) {
+      return NextResponse.json({ error: "Message is too long (max 2000 characters)" }, { status: 400 });
     }
 
     // Save user message
@@ -54,7 +68,7 @@ export async function POST(request: NextRequest) {
         "I'm here to help you with DCET preparation! While my AI features are being configured, you can ask your teachers questions directly through the Q&A section.",
         "Great question! For now, I'd recommend checking out the video lessons or asking your teacher for detailed explanations.",
         "DCET preparation requires consistent effort. Focus on Mathematics and your core subjects. Practice mock tests regularly!",
-        "Remember: Mohammed Adnan secured Rank 48 through dedication and hard work. You can achieve your goals too!",
+        "At Wintrix Academy, we believe in Guidance, Strategy, and Success. Mohammed Adnan secured Rank 48 through dedication — you can too!",
       ];
       
       const botMessage = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
@@ -111,10 +125,9 @@ Provide a helpful, concise response:`;
   } catch (error) {
     console.error("Chatbot error:", error);
     
-    // Return a friendly error message
     const errorMessage = "I'm having trouble processing your request right now. Please try again or ask your teacher for help!";
     
-    return NextResponse.json({ message: errorMessage });
+    return NextResponse.json({ error: errorMessage, message: errorMessage }, { status: 500 });
   }
 }
 

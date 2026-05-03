@@ -59,13 +59,13 @@ export default function StudentAskPage() {
         fetch("/api/admin/users?role=TEACHER&status=APPROVED"),
       ]);
 
+      if (!questionsRes.ok) throw new Error("Failed to fetch");
       const questionsData = await questionsRes.json();
-      setQuestions(questionsData);
+      setQuestions(questionsData.items);
 
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setTeachers(usersData);
-      }
+      if (!usersRes.ok) throw new Error("Failed to fetch");
+      const usersData = await usersRes.json();
+      setTeachers(usersData.items);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -76,6 +76,15 @@ export default function StudentAskPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.trim()) return;
+
+    if (visibility === "PRIVATE_TEACHER" && !targetId) {
+      toast({
+        title: "Teacher required",
+        description: "Please select a teacher for a private question.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSubmitting(true);
 
@@ -121,14 +130,14 @@ export default function StudentAskPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Ask a Question</h1>
-        <p className="text-gray-600 mt-1">Get help from teachers and the community</p>
+        <h1 className="text-3xl font-bold text-white">Ask a Question</h1>
+        <p className="text-stone-400 mt-1">Get help from teachers and the community</p>
       </div>
 
       {/* New Question Form */}
-      <Card className="border-0 shadow-md">
+      <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
         <CardHeader>
-          <CardTitle>Post a New Question</CardTitle>
+          <CardTitle className="text-white">Post a New Question</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,7 +198,7 @@ export default function StudentAskPage() {
                 </div>
               )}
             </div>
-            <Button type="submit" disabled={submitting} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={submitting} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
               <Send className="w-4 h-4 mr-2" />
               {submitting ? "Posting..." : "Post Question"}
             </Button>
@@ -199,33 +208,33 @@ export default function StudentAskPage() {
 
       {/* My Questions */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">My Questions</h2>
+        <h2 className="text-xl font-bold text-white mb-4">My Questions</h2>
         {loading ? (
-          <div className="text-center py-8">Loading...</div>
+          <div className="text-center py-8 text-stone-400">Loading...</div>
         ) : questions.length === 0 ? (
-          <Card className="border-0 shadow-md">
+          <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
             <CardContent className="py-12 text-center">
-              <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">You haven't asked any questions yet.</p>
+              <MessageCircle className="w-16 h-16 text-stone-500 mx-auto mb-4" />
+              <p className="text-stone-400">You haven't asked any questions yet.</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {questions.map((question) => (
-              <Card key={question.id} className="border-0 shadow-md">
+              <Card key={question.id} className="border border-amber-900/15 bg-stone-900 shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {question.visibility === "PUBLIC" ? (
-                        <Badge className="bg-green-100 text-green-700">
+                        <Badge className="bg-green-900/25 text-green-400">
                           <Globe className="w-3 h-3 mr-1" />Public
                         </Badge>
                       ) : (
-                        <Badge className="bg-amber-100 text-amber-700">
+                        <Badge className="bg-amber-900/25 text-amber-400">
                           <Lock className="w-3 h-3 mr-1" />Private
                         </Badge>
                       )}
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-stone-500">
                         {new Date(question.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -239,33 +248,33 @@ export default function StudentAskPage() {
                     </Button>
                   </div>
 
-                  <p className="text-gray-800 mb-4">{question.content}</p>
+                  <p className="text-white mb-4">{question.content}</p>
 
                   {/* Answers */}
                   {question.answers.length > 0 && (
-                    <div className="border-t pt-4 space-y-3">
-                      <p className="text-sm font-medium text-gray-700">
+                    <div className="border-t border-amber-900/20 pt-4 space-y-3">
+                      <p className="text-sm font-medium text-stone-400">
                         {question.answers.length} Answer{question.answers.length > 1 ? "s" : ""}
                       </p>
                       {question.answers.map((answer) => (
-                        <div key={answer.id} className="bg-blue-50 rounded-lg p-4">
+                        <div key={answer.id} className="bg-amber-900/15 rounded-lg p-4 border border-amber-900/15">
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-blue-600" />
+                            <div className="w-8 h-8 bg-amber-900/25 rounded-full flex items-center justify-center border border-amber-700/30">
+                              <User className="w-4 h-4 text-amber-500" />
                             </div>
-                            <span className="font-medium">{answer.answerer.name}</span>
+                            <span className="font-medium text-white">{answer.answerer.name}</span>
                             <Badge variant="outline" className="text-xs">
                               {answer.answerer.role}
                             </Badge>
                           </div>
-                          <p className="text-gray-700">{answer.content}</p>
+                          <p className="text-stone-400">{answer.content}</p>
                         </div>
                       ))}
                     </div>
                   )}
 
                   {question.answers.length === 0 && (
-                    <p className="text-sm text-gray-500 italic">
+                    <p className="text-sm text-stone-500 italic">
                       Waiting for a response...
                     </p>
                   )}
