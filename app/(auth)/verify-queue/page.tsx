@@ -16,12 +16,12 @@ export default function VerifyQueuePage() {
   const checkStatus = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/session");
+      const res = await fetch("/api/auth/check-approval");
       if (!res.ok) throw new Error("Failed to fetch");
-      const session = await res.json();
-      if (session?.user?.status === "APPROVED") {
+      const data = await res.json();
+      if (data.status === "APPROVED") {
         setStatus("approved");
-      } else if (session?.user?.status === "REJECTED") {
+      } else if (data.status === "REJECTED") {
         setStatus("rejected");
       } else {
         setStatus("pending");

@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate AI response
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Get recent chat history for context
     const recentMessages = await prisma.chatMessage.findMany({

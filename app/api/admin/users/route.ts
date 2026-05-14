@@ -21,11 +21,11 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {};
 
-    if (role) {
+    if (role && role !== "all") {
       where.role = role;
     }
 
-    if (status) {
+    if (status && status !== "all") {
       where.status = status;
     }
 

@@ -56,7 +56,7 @@ export default function StudentAskPage() {
     try {
       const [questionsRes, usersRes] = await Promise.all([
         fetch("/api/questions"),
-        fetch("/api/admin/users?role=TEACHER&status=APPROVED"),
+        fetch("/api/teachers"),
       ]);
 
       if (!questionsRes.ok) throw new Error("Failed to fetch");

@@ -75,6 +75,7 @@ export default function TeacherTestsPage() {
   const fetchTests = async () => {
     try {
       const response = await fetch("/api/tests");
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setTests(data);
     } catch (error) {
