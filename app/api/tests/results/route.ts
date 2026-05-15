@@ -141,9 +141,11 @@ export async function GET(request: NextRequest) {
         include: {
           subject: { select: { name: true } },
           _count: { select: { attempts: true, questions: true } },
+          questions: { select: { marks: true } },
           attempts: {
             where: { completed: true },
-            select: { score: true, totalMarks: true },
+            select: { score: true },
+            take: 200,
           },
         },
         orderBy: { createdAt: "desc" },
@@ -154,6 +156,7 @@ export async function GET(request: NextRequest) {
         const scores = test.attempts.map((a) => a.score);
         const avgScore =
           scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        const totalMarks = test.questions.reduce((sum, q) => sum + q.marks, 0);
 
         return {
           id: test.id,
@@ -164,8 +167,8 @@ export async function GET(request: NextRequest) {
           completedAttempts: test.attempts.length,
           averageScore: Math.round(avgScore * 10) / 10,
           averagePercentage:
-            test.attempts.length > 0 && test.attempts[0]?.totalMarks > 0
-              ? Math.round((avgScore / test.attempts[0].totalMarks) * 100)
+            test.attempts.length > 0 && totalMarks > 0
+              ? Math.round((avgScore / totalMarks) * 100)
               : 0,
         };
       });

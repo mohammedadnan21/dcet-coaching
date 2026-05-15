@@ -87,15 +87,16 @@ export async function POST(request: NextRequest) {
     // Generate AI response
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Get recent chat history for context
+    // Get recent chat history (excluding the message we just saved, to avoid duplication)
     const recentMessages = await prisma.chatMessage.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 11,
     });
 
     const chatHistory = recentMessages
       .reverse()
+      .slice(0, -1)
       .map((m) => `${m.isBot ? "Assistant" : "Student"}: ${m.content}`)
       .join("\n");
 

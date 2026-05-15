@@ -129,9 +129,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
-    // Only admin or the question author can delete
     if (session.user.role !== "ADMIN" && question.askedById !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "You can only delete your own questions" }, { status: 403 });
     }
 
     await prisma.question.delete({ where: { id } });

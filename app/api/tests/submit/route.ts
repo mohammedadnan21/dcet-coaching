@@ -19,6 +19,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { attemptId } = body;
 
+    if (!attemptId || typeof attemptId !== "string") {
+      return NextResponse.json({ error: "Attempt ID is required" }, { status: 400 });
+    }
+
     // Get the attempt with answers
     const attempt = await prisma.testAttempt.findUnique({
       where: { id: attemptId },

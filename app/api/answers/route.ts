@@ -13,8 +13,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { questionId, content } = body;
 
-    if (!questionId || !content) {
+    if (!questionId || !content || typeof content !== "string") {
       return NextResponse.json({ error: "Question ID and content are required" }, { status: 400 });
+    }
+
+    if (content.length > 5000) {
+      return NextResponse.json({ error: "Answer is too long (max 5000 characters)" }, { status: 400 });
     }
 
     const question = await prisma.question.findUnique({ where: { id: questionId } });

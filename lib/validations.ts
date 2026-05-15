@@ -48,7 +48,10 @@ export const meetingSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   description: z.string().optional(),
   zoomLink: z.string().url("Invalid Zoom link"),
-  scheduledAt: z.string().min(1, "Schedule time is required"),
+  scheduledAt: z.string().min(1, "Schedule time is required").refine(
+    (val) => !isNaN(Date.parse(val)),
+    "Invalid date format"
+  ),
 });
 
 export const questionSchema = z.object({

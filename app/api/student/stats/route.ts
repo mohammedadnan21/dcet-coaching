@@ -15,9 +15,10 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Get all test attempts for this student
+    // Get test attempts for this student (capped for performance)
     const testAttempts = await prisma.testAttempt.findMany({
       where: { userId },
+      take: 500,
       include: {
         test: {
           select: {

@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
         const deviceId = credentials.deviceId || uuidv4();
         const token = uuidv4();
 
-        // Invalidate all previous sessions and clean up expired ones
+        // Invalidate all previous sessions and clean up old ones
         await Promise.all([
           prisma.deviceSession.updateMany({
             where: { userId: user.id, active: true },
@@ -60,19 +60,30 @@ export const authOptions: NextAuthOptions = {
           prisma.deviceSession.deleteMany({
             where: {
               userId: user.id,
-              expiresAt: { lt: new Date() },
+              OR: [
+                { expiresAt: { lt: new Date() } },
+                { active: false },
+              ],
             },
           }),
         ]);
 
-        // Create new session
-        await prisma.deviceSession.create({
-          data: {
+        // Create new session (upsert to avoid unique constraint on same device)
+        await prisma.deviceSession.upsert({
+          where: {
+            userId_deviceId: { userId: user.id, deviceId: deviceId },
+          },
+          update: {
+            token: token,
+            active: true,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+          create: {
             userId: user.id,
             deviceId: deviceId,
             token: token,
             active: true,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           },
         });
 

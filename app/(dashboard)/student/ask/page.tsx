@@ -119,7 +119,8 @@ export default function StudentAskPage() {
     if (!confirm("Delete this question?")) return;
 
     try {
-      await fetch(`/api/questions?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/questions?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
       toast({ title: "Deleted" });
       fetchData();
     } catch (error) {

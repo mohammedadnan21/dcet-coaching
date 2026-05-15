@@ -9,6 +9,7 @@ export async function GET() {
     const subjects = await prisma.subject.findMany({
       where: { active: true },
       orderBy: { name: "asc" },
+      take: 100,
       include: {
         _count: {
           select: {

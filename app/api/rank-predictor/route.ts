@@ -59,9 +59,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const yearNum = parseInt(year);
+    if (isNaN(yearNum)) {
+      return NextResponse.json(
+        { error: "Please select a valid year" },
+        { status: 400 }
+      );
+    }
+
     // Build the query
-    const whereClause: any = {
-      year: parseInt(year),
+    const whereClause: Record<string, unknown> = {
+      year: yearNum,
       category: category,
       closingRank: {
         gte: rankNum, // User's rank should be <= closing rank
@@ -78,9 +86,10 @@ export async function POST(req: NextRequest) {
     // Find colleges where the user's rank is within the cutoff
     const eligibleColleges = await prisma.dcetCutoff.findMany({
       where: whereClause,
+      take: 500,
       orderBy: [
-        { collegeType: "asc" }, // Government first
-        { closingRank: "asc" }, // Then by closing rank
+        { collegeType: "asc" },
+        { closingRank: "asc" },
       ],
     });
 
@@ -98,7 +107,7 @@ export async function POST(req: NextRequest) {
     // Also find colleges where user is close (within 50 ranks)
     const nearMissColleges = await prisma.dcetCutoff.findMany({
       where: {
-        year: parseInt(year),
+        year: yearNum,
         category: category,
         closingRank: {
           lt: rankNum,
@@ -116,7 +125,7 @@ export async function POST(req: NextRequest) {
       success: true,
       rank: rankNum,
       category,
-      year: parseInt(year),
+      year: yearNum,
       totalEligible: eligibleColleges.length,
       results: {
         government,

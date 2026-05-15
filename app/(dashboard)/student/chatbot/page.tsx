@@ -105,7 +105,8 @@ export default function ChatbotPage() {
     if (!confirm("Clear all chat history?")) return;
 
     try {
-      await fetch("/api/chatbot", { method: "DELETE" });
+      const res = await fetch("/api/chatbot", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to clear");
       setMessages([]);
       toast({ title: "Cleared", description: "Chat history cleared" });
     } catch (error) {
@@ -224,7 +225,7 @@ export default function ChatbotPage() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Type your question..."
               disabled={loading}
               className="flex-1 border-amber-900/20 bg-stone-950 text-white placeholder:text-stone-500"

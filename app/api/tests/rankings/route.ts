@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       userName: attempt.user.name,
       score: attempt.score,
       totalMarks: attempt.totalMarks,
-      percentage: Math.round((attempt.score / attempt.totalMarks) * 100),
+      percentage: attempt.totalMarks > 0 ? Math.round((attempt.score / attempt.totalMarks) * 100) : 0,
       completedAt: attempt.completedAt,
       isCurrentUser: attempt.userId === session.user.id,
     }));

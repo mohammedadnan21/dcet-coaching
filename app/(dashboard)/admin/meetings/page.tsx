@@ -125,10 +125,9 @@ export default function MeetingsPage() {
 
     try {
       const response = await fetch(`/api/meetings?id=${id}`, { method: "DELETE" });
-      if (response.ok) {
-        toast({ title: "Success", description: "Meeting deleted" });
-        fetchMeetings();
-      }
+      if (!response.ok) throw new Error("Failed to delete");
+      toast({ title: "Success", description: "Meeting deleted" });
+      fetchMeetings();
     } catch (error) {
       toast({
         title: "Error",
