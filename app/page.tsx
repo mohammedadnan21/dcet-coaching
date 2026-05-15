@@ -433,28 +433,28 @@ export default function LandingPage() {
                     <p className="text-amber-400 font-medium mt-1">Director & Brand Architect — Wintrix Academy</p>
                   </div>
                   <p className="text-stone-400 text-sm leading-relaxed mb-5 md:mt-0 mt-4">
-                    I design systems that turn confusion into <span className="text-amber-400 font-medium">clarity</span>... and effort into <span className="text-amber-400 font-medium">results</span>.
+                    Turning confusion into <span className="text-amber-400 font-medium">clarity</span> and effort into <span className="text-amber-400 font-medium">results</span> — that&apos;s what drives Wintrix forward.
                   </p>
 
                   <div className="space-y-3 mb-6">
                     {[
-                      { title: "I don't follow the old system.", desc: "I build new-age strategies that connect deeply with today's learners and tomorrow's leaders." },
-                      { title: "I don't believe in random marketing.", desc: "Every message, every campaign, every piece of content is built with purpose, data, and direction." },
-                      { title: "I don't teach more.", desc: "I create high-impact scripts and systems that make learning feel simple, structured, and unforgettable." },
-                      { title: "I don't leave success to chance.", desc: "At Wintrix, we don't hope for results — we engineer them." },
+                      { title: "New-age learning strategies", desc: "Approaches built for today's learners — connecting deeply with how students actually study and grow." },
+                      { title: "Purpose-driven outreach", desc: "Every message and campaign is crafted with clear intent, backed by data and direction." },
+                      { title: "Structured content design", desc: "High-impact scripts and systems that make learning feel simple, organized, and memorable." },
+                      { title: "Results by design", desc: "At Wintrix, success isn't left to chance — it's engineered from day one." },
                     ].map((item, i) => (
                       <div key={i} className="flex gap-3">
-                        <span className="text-amber-500 mt-0.5 shrink-0">›</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                         <div>
                           <p className="text-amber-400 font-semibold text-sm">{item.title}</p>
-                          <p className="text-stone-500 text-xs leading-relaxed">{item.desc}</p>
+                          <p className="text-stone-400 text-xs leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
                   <div>
-                    <p className="text-stone-600 text-xs font-medium uppercase tracking-wider mb-3">Focus Areas</p>
+                    <p className="text-stone-500 text-xs font-medium uppercase tracking-wider mb-3">Focus Areas</p>
                     <div className="flex flex-wrap gap-2">
                       {["Brand Strategy", "Marketing & Growth", "Content & Script Design", "Student Psychology"].map((area) => (
                         <span key={area} className="px-3 py-1.5 bg-amber-900/20 border border-amber-900/30 rounded-lg text-amber-400 text-xs font-medium">
@@ -464,8 +464,8 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  <p className="mt-6 text-stone-600 text-xs italic">
-                    &ldquo;I don&apos;t follow trends... I build systems that win.&rdquo;
+                  <p className="mt-6 text-stone-500 text-xs italic">
+                    &ldquo;I don&apos;t follow trends — I build systems that win.&rdquo;
                   </p>
                 </div>
               </div>
@@ -533,7 +533,7 @@ export default function LandingPage() {
             Ready to Start Your DCET Journey?
           </h2>
           <p className="text-xl text-stone-400 mb-8 max-w-2xl mx-auto">
-            Join hundreds of students who are preparing for DCET with expert guidance and proven strategies.
+            Join our growing community of DCET aspirants preparing with expert guidance and proven strategies.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/register?role=student">
@@ -604,7 +604,6 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-amber-900/20 mt-8 pt-8 text-center text-stone-500">
             <p>&copy; {new Date().getFullYear()} Wintrix Academy. All rights reserved.</p>
-            <p className="mt-2 text-sm">Founded by Mohammed Adnan (DCET Rank 48, RVCE)</p>
           </div>
         </div>
       </footer>
