@@ -396,8 +396,85 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Team Section */}
+      <section className="py-20 bg-stone-900/50 border-y border-amber-900/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">The Vision Behind Wintrix</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              Team <span className="gradient-text-gold">WINTRIX</span>
+            </h2>
+            <p className="text-stone-500 text-sm max-w-md mx-auto">
+              Building WINTRIX to guide serious students towards success.
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(180,83,9,0.12)] hover:border-amber-700/40">
+              <div className="grid md:grid-cols-5 gap-0">
+                <div className="md:col-span-2 relative">
+                  <Image
+                    src="/team-jnanesh.png"
+                    alt="Jnanesh Gowda - Director & Brand Architect"
+                    width={500}
+                    height={600}
+                    className="w-full h-full object-cover min-h-[320px]"
+                  />
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-stone-950/90 to-transparent p-6 md:hidden">
+                    <h3 className="text-xl font-bold text-white">Jnanesh Gowda</h3>
+                    <p className="text-amber-400 text-sm font-medium">Director & Brand Architect</p>
+                  </div>
+                </div>
+
+                <div className="md:col-span-3 p-6 sm:p-8 flex flex-col justify-center">
+                  <div className="hidden md:block mb-4">
+                    <h3 className="text-2xl font-bold text-white">Jnanesh Gowda</h3>
+                    <p className="text-amber-400 font-medium mt-1">Director & Brand Architect — Wintrix Academy</p>
+                  </div>
+                  <p className="text-stone-400 text-sm leading-relaxed mb-5 md:mt-0 mt-4">
+                    I design systems that turn confusion into <span className="text-amber-400 font-medium">clarity</span>... and effort into <span className="text-amber-400 font-medium">results</span>.
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    {[
+                      { title: "I don't follow the old system.", desc: "I build new-age strategies that connect deeply with today's learners and tomorrow's leaders." },
+                      { title: "I don't believe in random marketing.", desc: "Every message, every campaign, every piece of content is built with purpose, data, and direction." },
+                      { title: "I don't teach more.", desc: "I create high-impact scripts and systems that make learning feel simple, structured, and unforgettable." },
+                      { title: "I don't leave success to chance.", desc: "At Wintrix, we don't hope for results — we engineer them." },
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-3">
+                        <span className="text-amber-500 mt-0.5 shrink-0">›</span>
+                        <div>
+                          <p className="text-amber-400 font-semibold text-sm">{item.title}</p>
+                          <p className="text-stone-500 text-xs leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <p className="text-stone-600 text-xs font-medium uppercase tracking-wider mb-3">Focus Areas</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Brand Strategy", "Marketing & Growth", "Content & Script Design", "Student Psychology"].map((area) => (
+                        <span key={area} className="px-3 py-1.5 bg-amber-900/20 border border-amber-900/30 rounded-lg text-amber-400 text-xs font-medium">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="mt-6 text-stone-600 text-xs italic">
+                    &ldquo;I don&apos;t follow trends... I build systems that win.&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-20 bg-stone-900/50 border-y border-amber-900/20">
+      <section id="features" className="py-20 bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-amber-900/30 text-amber-400 border border-amber-700/30">Platform Features</Badge>
@@ -491,40 +568,6 @@ export default function LandingPage() {
             ].map((contact, index) => (
               <ContactCard key={index} contact={contact} />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="py-16 bg-stone-950 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              Team <span className="gradient-text-gold">WINTRIX</span>
-            </h2>
-            <p className="text-stone-500 text-sm max-w-md mx-auto">
-              Building WINTRIX to guide serious students towards success.
-            </p>
-          </div>
-
-          <div className="flex justify-center">
-            <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl p-6 sm:p-8 text-center max-w-xs w-full transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(180,83,9,0.15)] hover:border-amber-700/40">
-              <div className="relative mx-auto w-28 h-28 mb-5">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500 to-amber-800 opacity-20 group-hover:opacity-35 transition-opacity blur-sm scale-110" />
-                <Image
-                  src="/team-jnanesh.png"
-                  alt="Jnanesh Gowda"
-                  width={112}
-                  height={112}
-                  className="relative rounded-full object-cover w-28 h-28 border-2 border-amber-700/40"
-                />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-1">Jnanesh Gowda</h3>
-              <p className="text-amber-400 text-sm font-medium mb-2">Marketing & Outreach Lead</p>
-              <p className="text-stone-500 text-xs leading-relaxed">
-                Handles student communication and outreach
-              </p>
-            </div>
           </div>
         </div>
       </section>
