@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 function parsePageLimit(searchParams: URLSearchParams) {
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
   const rawLimit = parseInt(searchParams.get("limit") ?? "20", 10);

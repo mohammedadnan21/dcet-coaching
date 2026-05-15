@@ -235,7 +235,7 @@ export default function LandingPage() {
                   Academy
                 </h1>
                 <p className="text-lg md:text-xl text-stone-400 max-w-xl leading-relaxed">
-                  <span className="text-amber-400 font-medium">Guidance. Strategy. Success.</span> Learn from Mohammed Adnan, who secured All-Karnataka Rank 48 in DCET and is now pursuing CSE at R.V. College of Engineering.
+                  <span className="text-amber-400 font-medium">Guidance. Strategy. Success.</span> Empowering <span className="text-white font-semibold">DCET 2027</span> Aspirants with mentorship from Mohammed Adnan, who secured All-Karnataka Rank 48 and is now pursuing CSE at RVCE.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -261,7 +261,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-stone-400">
-                  <span className="font-bold text-white">500+</span> Students enrolled
+                  <span className="font-bold text-white">50+</span> Students enrolled
                 </p>
               </div>
             </div>
@@ -309,6 +309,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
       </section>
 
       {/* Stats Section */}
