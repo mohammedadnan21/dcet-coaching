@@ -13,10 +13,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, BookOpen, Video, ClipboardList } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, Video, ClipboardList, Loader2 } from "lucide-react";
 
 interface Subject {
   id: string;
@@ -36,6 +45,8 @@ export default function SubjectsPage() {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchSubjects();
@@ -49,6 +60,7 @@ export default function SubjectsPage() {
       setSubjects(data);
     } catch (error) {
       console.error("Failed to fetch subjects:", error);
+      toast({ title: "Error", description: "Failed to load subjects", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -59,31 +71,31 @@ export default function SubjectsPage() {
     setSaving(true);
 
     try {
-      const url = editingSubject ? "/api/subjects" : "/api/subjects";
       const method = editingSubject ? "PUT" : "POST";
       const body = editingSubject
         ? { id: editingSubject.id, ...formData }
         : formData;
 
-      const response = await fetch(url, {
+      const response = await fetch("/api/subjects", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: editingSubject ? "Subject updated" : "Subject created",
-        });
-        setDialogOpen(false);
-        setEditingSubject(null);
-        setFormData({ name: "", description: "" });
-        fetchSubjects();
-      } else {
-        const data = await response.json();
-        throw new Error(data.error);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save subject");
       }
+
+      toast({
+        title: "Success",
+        description: editingSubject ? "Subject updated successfully" : "Subject created successfully",
+      });
+      setDialogOpen(false);
+      setEditingSubject(null);
+      setFormData({ name: "", description: "" });
+      fetchSubjects();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -95,26 +107,31 @@ export default function SubjectsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this subject?")) return;
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
 
     try {
-      const response = await fetch(`/api/subjects?id=${id}`, {
+      const response = await fetch(`/api/subjects?id=${deleteId}`, {
         method: "DELETE",
       });
 
-      if (response.ok) {
-        toast({ title: "Success", description: "Subject deleted" });
-        fetchSubjects();
-      } else {
-        throw new Error("Failed to delete");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete");
       }
-    } catch (error) {
+
+      toast({ title: "Success", description: "Subject deleted successfully" });
+      fetchSubjects();
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete subject",
+        description: error.message || "Failed to delete subject",
         variant: "destructive",
       });
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -137,62 +154,95 @@ export default function SubjectsPage() {
           <h1 className="text-3xl font-bold text-white">Subjects</h1>
           <p className="text-stone-400 mt-1">Manage course subjects</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Subject
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingSubject ? "Edit Subject" : "Add New Subject"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingSubject
-                    ? "Update the subject details"
-                    : "Create a new subject for your courses"}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Subject Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Mathematics"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Brief description of the subject..."
-                    rows={3}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : editingSubject ? "Update" : "Create"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openNewDialog} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Subject
+        </Button>
       </div>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>
+                {editingSubject ? "Edit Subject" : "Add New Subject"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingSubject
+                  ? "Update the subject details"
+                  : "Create a new subject for your courses"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Subject Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Mathematics"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of the subject..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving} className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : editingSubject ? "Update" : "Create"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Subject</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this subject? This will also delete all associated videos and tests. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {loading ? (
         <div className="text-center py-12">
+          <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto mb-3" />
           <p className="text-stone-500">Loading subjects...</p>
         </div>
       ) : subjects.length === 0 ? (
@@ -220,14 +270,19 @@ export default function SubjectsPage() {
                     <CardTitle className="text-lg text-white">{subject.name}</CardTitle>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(subject)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-amber-400 hover:text-amber-300 hover:bg-amber-900/30"
+                      onClick={() => openEditDialog(subject)}
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => handleDelete(subject.id)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                      onClick={() => setDeleteId(subject.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -241,11 +296,11 @@ export default function SubjectsPage() {
                 <div className="flex gap-4">
                   <div className="flex items-center gap-1 text-sm text-stone-500">
                     <Video className="w-4 h-4" />
-                    <span>{subject._count.videos} videos</span>
+                    <span>{subject._count?.videos ?? 0} videos</span>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-stone-500">
                     <ClipboardList className="w-4 h-4" />
-                    <span>{subject._count.mockTests} tests</span>
+                    <span>{subject._count?.mockTests ?? 0} tests</span>
                   </div>
                 </div>
               </CardContent>
