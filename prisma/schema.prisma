@@ -1,4 +1,3 @@
-// This is your Prisma schema file
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,54 +8,126 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Role: ADMIN, TEACHER, STUDENT
-// UserStatus: PENDING, APPROVED, REJECTED
-// QuestionVisibility: PUBLIC, PRIVATE_ADMIN, PRIVATE_TEACHER
+model Answer {
+  id         String   @id
+  content    String
+  questionId String
+  answeredBy String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  User       User     @relation(fields: [answeredBy], references: [id])
+  Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  phone         String
-  password      String
-  role          String   @default("STUDENT")
-  status        String   @default("PENDING")
-  isVerified    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  @@index([questionId])
+}
 
-  // Relations
-  deviceSessions  DeviceSession[]
-  videos          Video[]         @relation("UploadedVideos")
-  hostMeetings    Meeting[]       @relation("HostMeetings")
-  questions       Question[]      @relation("AskedQuestions")
-  targetQuestions Question[]      @relation("TargetQuestions")
-  answers         Answer[]
-  testAttempts    TestAttempt[]
-  createdTests    MockTest[]      @relation("CreatedTests")
-  teacherSubjects TeacherSubject[]
-  chatMessages    ChatMessage[]
+model ChatMessage {
+  id        String   @id
+  userId    String
+  content   String
+  isBot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([role, status])
+  @@index([userId, createdAt])
+}
+
+model DcetCutoff {
+  id          String   @id
+  year        Int
+  collegeName String
+  collegeCode String
+  branch      String
+  branchCode  String
+  category    String
+  openingRank Int
+  closingRank Int
+  collegeType String
+  location    String
+  createdAt   DateTime @default(now())
+
+  @@index([year, branch, category])
+  @@index([year, closingRank])
 }
 
 model DeviceSession {
-  id        String   @id @default(cuid())
+  id        String   @id
   userId    String
   deviceId  String
   token     String   @unique
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   expiresAt DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, deviceId])
   @@index([userId])
 }
 
+model MCQuestion {
+  id            String       @id
+  testId        String
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption String
+  marks         Int          @default(1)
+  createdAt     DateTime     @default(now())
+  MockTest      MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  TestAnswer    TestAnswer[]
+
+  @@index([testId])
+}
+
+model Meeting {
+  id           String   @id
+  title        String
+  description  String?
+  zoomLink     String
+  scheduledAt  DateTime
+  hostId       String
+  cancelled    Boolean  @default(false)
+  cancelReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [hostId], references: [id])
+
+  @@index([scheduledAt, cancelled])
+}
+
+model MockTest {
+  id          String        @id
+  title       String
+  description String?
+  subjectId   String
+  createdBy   String
+  duration    Int
+  showRanking Boolean       @default(false)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  MCQuestion  MCQuestion[]
+  User        User          @relation(fields: [createdBy], references: [id])
+  Subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  TestAttempt TestAttempt[]
+
+  @@index([active, subjectId])
+}
+
+model MotivationQuote {
+  id        String   @id
+  quote     String
+  author    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([active])
+}
+
 model OtpVerification {
-  id        String   @id @default(cuid())
+  id        String   @id
   email     String
   otp       String
   expiresAt DateTime
@@ -66,204 +137,112 @@ model OtpVerification {
   @@index([email])
 }
 
-model Subject {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  videos    Video[]
-  mockTests MockTest[]
-  teachers  TeacherSubject[]
-}
-
-model TeacherSubject {
-  id        String   @id @default(cuid())
-  teacherId String
-  subjectId String
-  createdAt DateTime @default(now())
-
-  teacher User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-
-  @@unique([teacherId, subjectId])
-}
-
-model Video {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  youtubeUrl  String
-  subjectId   String
-  uploadedBy  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  subject  Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  uploader User    @relation("UploadedVideos", fields: [uploadedBy], references: [id])
-
-  @@index([subjectId])
-}
-
-model Meeting {
-  id           String   @id @default(cuid())
-  title        String
-  description  String?
-  zoomLink     String
-  scheduledAt  DateTime
-  hostId       String
-  cancelled    Boolean  @default(false)
-  cancelReason String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  host User @relation("HostMeetings", fields: [hostId], references: [id])
-
-  @@index([scheduledAt, cancelled])
-}
-
 model Question {
-  id         String   @id @default(cuid())
-  content    String
-  askedById  String
-  targetId   String?
-  visibility String   @default("PUBLIC")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  askedBy User     @relation("AskedQuestions", fields: [askedById], references: [id], onDelete: Cascade)
-  target  User?    @relation("TargetQuestions", fields: [targetId], references: [id])
-  answers Answer[]
+  id                            String   @id
+  content                       String
+  askedById                     String
+  targetId                      String?
+  visibility                    String   @default("PUBLIC")
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime
+  Answer                        Answer[]
+  User_Question_askedByIdToUser User     @relation("Question_askedByIdToUser", fields: [askedById], references: [id], onDelete: Cascade)
+  User_Question_targetIdToUser  User?    @relation("Question_targetIdToUser", fields: [targetId], references: [id])
 
   @@index([askedById])
   @@index([targetId])
   @@index([visibility])
 }
 
-model Answer {
-  id         String   @id @default(cuid())
-  content    String
-  questionId String
-  answeredBy String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answerer User     @relation(fields: [answeredBy], references: [id])
-
-  @@index([questionId])
+model Subject {
+  id             String           @id
+  name           String           @unique
+  description    String?
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  MockTest       MockTest[]
+  TeacherSubject TeacherSubject[]
+  Video          Video[]
 }
 
-model MockTest {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  subjectId   String
-  createdBy   String
-  duration    Int
-  showRanking Boolean  @default(false)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model TeacherSubject {
+  id        String   @id
+  teacherId String
+  subjectId String
+  createdAt DateTime @default(now())
+  Subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
-  subject   Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  creator   User          @relation("CreatedTests", fields: [createdBy], references: [id])
-  questions MCQuestion[]
-  attempts  TestAttempt[]
-
-  @@index([active, subjectId])
+  @@unique([teacherId, subjectId])
 }
 
-model MCQuestion {
-  id            String   @id @default(cuid())
-  testId        String
-  question      String
-  optionA       String
-  optionB       String
-  optionC       String
-  optionD       String
-  correctOption String
-  marks         Int      @default(1)
-  createdAt     DateTime @default(now())
+model TestAnswer {
+  id             String      @id
+  attemptId      String
+  questionId     String
+  selectedOption String?
+  isCorrect      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  TestAttempt    TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  MCQuestion     MCQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  test    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  answers TestAnswer[]
-
-  @@index([testId])
+  @@unique([attemptId, questionId])
 }
 
 model TestAttempt {
-  id          String    @id @default(cuid())
+  id          String       @id
   testId      String
   userId      String
-  score       Int       @default(0)
-  totalMarks  Int       @default(0)
-  completed   Boolean   @default(false)
-  startedAt   DateTime  @default(now())
+  score       Int          @default(0)
+  totalMarks  Int          @default(0)
+  completed   Boolean      @default(false)
+  startedAt   DateTime     @default(now())
   completedAt DateTime?
-
-  test    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  answers TestAnswer[]
+  TestAnswer  TestAnswer[]
+  MockTest    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  User        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([testId, userId])
   @@index([userId])
 }
 
-model TestAnswer {
-  id             String   @id @default(cuid())
-  attemptId      String
-  questionId     String
-  selectedOption String?
-  isCorrect      Boolean  @default(false)
-  createdAt      DateTime @default(now())
+model User {
+  id                                String           @id
+  name                              String
+  email                             String           @unique
+  phone                             String
+  password                          String
+  role                              String           @default("STUDENT")
+  status                            String           @default("PENDING")
+  isVerified                        Boolean          @default(false)
+  createdAt                         DateTime         @default(now())
+  updatedAt                         DateTime
+  Answer                            Answer[]
+  ChatMessage                       ChatMessage[]
+  DeviceSession                     DeviceSession[]
+  Meeting                           Meeting[]
+  MockTest                          MockTest[]
+  Question_Question_askedByIdToUser Question[]       @relation("Question_askedByIdToUser")
+  Question_Question_targetIdToUser  Question[]       @relation("Question_targetIdToUser")
+  TeacherSubject                    TeacherSubject[]
+  TestAttempt                       TestAttempt[]
+  Video                             Video[]
 
-  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question MCQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@unique([attemptId, questionId])
+  @@index([role, status])
 }
 
-model ChatMessage {
-  id        String   @id @default(cuid())
-  userId    String
-  content   String
-  isBot     Boolean  @default(false)
-  createdAt DateTime @default(now())
+model Video {
+  id          String   @id
+  title       String
+  description String?
+  youtubeUrl  String
+  subjectId   String
+  uploadedBy  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  User        User     @relation(fields: [uploadedBy], references: [id])
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-}
-
-model MotivationQuote {
-  id        String   @id @default(cuid())
-  quote     String
-  author    String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-
-  @@index([active])
-}
-
-// DCET Cutoff data for rank prediction
-model DcetCutoff {
-  id           String   @id @default(cuid())
-  year         Int
-  collegeName  String
-  collegeCode  String
-  branch       String
-  branchCode   String
-  category     String   // GM, 2A, 2B, 3A, 3B, SC, ST, etc.
-  openingRank  Int
-  closingRank  Int
-  collegeType  String   // Government, Private-Aided, Private-Unaided
-  location     String   // City/District
-  createdAt    DateTime @default(now())
-
-  @@index([year, branch, category])
-  @@index([year, closingRank])
+  @@index([subjectId])
 }
