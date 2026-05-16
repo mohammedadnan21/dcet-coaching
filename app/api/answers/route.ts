@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       },
       include: {
-        answerer: { select: { id: true, name: true, role: true } },
+        User: { select: { id: true, name: true, role: true } },
       },
     });
 
