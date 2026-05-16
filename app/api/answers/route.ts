@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,14 +31,12 @@ export async function POST(request: NextRequest) {
 
     const answer = await prisma.answer.create({
       data: {
-        id: uuidv4(),
         questionId,
         content,
         answeredBy: session.user.id,
-        updatedAt: new Date(),
       },
       include: {
-        User: { select: { id: true, name: true, role: true } },
+        answerer: { select: { id: true, name: true, role: true } },
       },
     });
 

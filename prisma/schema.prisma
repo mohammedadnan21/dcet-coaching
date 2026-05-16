@@ -9,31 +9,31 @@ datasource db {
 }
 
 model Answer {
-  id         String   @id
+  id         String   @id @default(cuid())
   content    String
   questionId String
   answeredBy String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  User       User     @relation(fields: [answeredBy], references: [id])
-  Question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  updatedAt  DateTime @updatedAt
+  answerer   User     @relation(fields: [answeredBy], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([questionId])
 }
 
 model ChatMessage {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   content   String
   isBot     Boolean  @default(false)
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
 
 model DcetCutoff {
-  id          String   @id
+  id          String   @id @default(cuid())
   year        Int
   collegeName String
   collegeCode String
@@ -51,21 +51,21 @@ model DcetCutoff {
 }
 
 model DeviceSession {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String
   deviceId  String
   token     String   @unique
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   expiresAt DateTime
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, deviceId])
   @@index([userId])
 }
 
 model MCQuestion {
-  id            String       @id
+  id            String       @id @default(cuid())
   testId        String
   question      String
   optionA       String
@@ -75,14 +75,14 @@ model MCQuestion {
   correctOption String
   marks         Int          @default(1)
   createdAt     DateTime     @default(now())
-  MockTest      MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  TestAnswer    TestAnswer[]
+  test          MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testAnswers   TestAnswer[]
 
   @@index([testId])
 }
 
 model Meeting {
-  id           String   @id
+  id           String   @id @default(cuid())
   title        String
   description  String?
   zoomLink     String
@@ -91,14 +91,14 @@ model Meeting {
   cancelled    Boolean  @default(false)
   cancelReason String?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime
-  User         User     @relation(fields: [hostId], references: [id])
+  updatedAt    DateTime @updatedAt
+  host         User     @relation(fields: [hostId], references: [id])
 
   @@index([scheduledAt, cancelled])
 }
 
 model MockTest {
-  id          String        @id
+  id          String        @id @default(cuid())
   title       String
   description String?
   subjectId   String
@@ -107,17 +107,17 @@ model MockTest {
   showRanking Boolean       @default(false)
   active      Boolean       @default(true)
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  MCQuestion  MCQuestion[]
-  User        User          @relation(fields: [createdBy], references: [id])
-  Subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  TestAttempt TestAttempt[]
+  updatedAt   DateTime      @updatedAt
+  questions   MCQuestion[]
+  creator     User          @relation(fields: [createdBy], references: [id])
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  attempts    TestAttempt[]
 
   @@index([active, subjectId])
 }
 
 model MotivationQuote {
-  id        String   @id
+  id        String   @id @default(cuid())
   quote     String
   author    String?
   active    Boolean  @default(true)
@@ -127,7 +127,7 @@ model MotivationQuote {
 }
 
 model OtpVerification {
-  id        String   @id
+  id        String   @id @default(cuid())
   email     String
   otp       String
   expiresAt DateTime
@@ -138,16 +138,16 @@ model OtpVerification {
 }
 
 model Question {
-  id                            String   @id
+  id                            String   @id @default(cuid())
   content                       String
   askedById                     String
   targetId                      String?
   visibility                    String   @default("PUBLIC")
   createdAt                     DateTime @default(now())
-  updatedAt                     DateTime
-  Answer                        Answer[]
-  User_Question_askedByIdToUser User     @relation("Question_askedByIdToUser", fields: [askedById], references: [id], onDelete: Cascade)
-  User_Question_targetIdToUser  User?    @relation("Question_targetIdToUser", fields: [targetId], references: [id])
+  updatedAt                     DateTime @updatedAt
+  answers                       Answer[]
+  askedBy                       User     @relation("Question_askedByIdToUser", fields: [askedById], references: [id], onDelete: Cascade)
+  target                        User?    @relation("Question_targetIdToUser", fields: [targetId], references: [id])
 
   @@index([askedById])
   @@index([targetId])
@@ -155,43 +155,43 @@ model Question {
 }
 
 model Subject {
-  id             String           @id
+  id             String           @id @default(cuid())
   name           String           @unique
   description    String?
   active         Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  MockTest       MockTest[]
-  TeacherSubject TeacherSubject[]
-  Video          Video[]
+  updatedAt      DateTime         @updatedAt
+  mockTests      MockTest[]
+  teacherSubjects TeacherSubject[]
+  videos         Video[]
 }
 
 model TeacherSubject {
-  id        String   @id
+  id        String   @id @default(cuid())
   teacherId String
   subjectId String
   createdAt DateTime @default(now())
-  Subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  User      User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, subjectId])
 }
 
 model TestAnswer {
-  id             String      @id
+  id             String      @id @default(cuid())
   attemptId      String
   questionId     String
   selectedOption String?
   isCorrect      Boolean     @default(false)
   createdAt      DateTime    @default(now())
-  TestAttempt    TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  MCQuestion     MCQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempt        TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       MCQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, questionId])
 }
 
 model TestAttempt {
-  id          String       @id
+  id          String       @id @default(cuid())
   testId      String
   userId      String
   score       Int          @default(0)
@@ -199,16 +199,16 @@ model TestAttempt {
   completed   Boolean      @default(false)
   startedAt   DateTime     @default(now())
   completedAt DateTime?
-  TestAnswer  TestAnswer[]
-  MockTest    MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  User        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers     TestAnswer[]
+  test        MockTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([testId, userId])
   @@index([userId])
 }
 
 model User {
-  id                                String           @id
+  id                                String           @id @default(cuid())
   name                              String
   email                             String           @unique
   phone                             String
@@ -217,32 +217,32 @@ model User {
   status                            String           @default("PENDING")
   isVerified                        Boolean          @default(false)
   createdAt                         DateTime         @default(now())
-  updatedAt                         DateTime
-  Answer                            Answer[]
-  ChatMessage                       ChatMessage[]
-  DeviceSession                     DeviceSession[]
-  Meeting                           Meeting[]
-  MockTest                          MockTest[]
-  Question_Question_askedByIdToUser Question[]       @relation("Question_askedByIdToUser")
-  Question_Question_targetIdToUser  Question[]       @relation("Question_targetIdToUser")
-  TeacherSubject                    TeacherSubject[]
-  TestAttempt                       TestAttempt[]
-  Video                             Video[]
+  updatedAt                         DateTime         @updatedAt
+  answers                           Answer[]
+  chatMessages                      ChatMessage[]
+  deviceSessions                    DeviceSession[]
+  meetings                          Meeting[]
+  createdTests                      MockTest[]
+  askedQuestions                    Question[]       @relation("Question_askedByIdToUser")
+  targetedQuestions                 Question[]       @relation("Question_targetIdToUser")
+  teacherSubjects                   TeacherSubject[]
+  testAttempts                      TestAttempt[]
+  videos                            Video[]
 
   @@index([role, status])
 }
 
 model Video {
-  id          String   @id
+  id          String   @id @default(cuid())
   title       String
   description String?
   youtubeUrl  String
   subjectId   String
   uploadedBy  String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  User        User     @relation(fields: [uploadedBy], references: [id])
+  updatedAt   DateTime @updatedAt
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  uploader    User     @relation(fields: [uploadedBy], references: [id])
 
   @@index([subjectId])
 }
