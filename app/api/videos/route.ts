@@ -31,9 +31,7 @@ export async function GET(request: NextRequest) {
       prisma.video.count({ where }),
     ]);
 
-    return NextResponse.json({ items: videos, total, page, limit }, {
-      headers: { "Cache-Control": "private, s-maxage=60, stale-while-revalidate=30" },
-    });
+    return NextResponse.json({ items: videos, total, page, limit });
   } catch (error) {
     console.error("Error fetching videos:", error);
     return NextResponse.json({ error: "Failed to fetch videos" }, { status: 500 });

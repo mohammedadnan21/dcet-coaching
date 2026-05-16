@@ -36,9 +36,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(tests, {
-      headers: { "Cache-Control": "private, s-maxage=30, stale-while-revalidate=15" },
-    });
+    return NextResponse.json(tests);
   } catch (error) {
     console.error("Error fetching tests:", error);
     return NextResponse.json({ error: "Failed to fetch tests" }, { status: 500 });
