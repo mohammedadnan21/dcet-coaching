@@ -245,12 +245,6 @@ export default function LandingPage() {
                     Join as Student
                   </Button>
                 </Link>
-                <Link href="/register?role=teacher">
-                  <Button size="lg" variant="outline" className="h-12 px-8 border-amber-700/50 text-amber-400 hover:bg-amber-900/20">
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    Join as Teacher
-                  </Button>
-                </Link>
               </div>
               <div className="flex items-center gap-8 pt-4">
                 <div className="flex -space-x-3">
