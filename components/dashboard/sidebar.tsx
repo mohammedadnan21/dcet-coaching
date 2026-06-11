@@ -23,6 +23,7 @@ import {
   UserCheck,
   Trophy,
   Bot,
+  Library,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -63,6 +64,7 @@ const studentLinks: SidebarLink[] = [
   { href: "/student/meetings", label: "Live Classes", icon: Calendar },
   { href: "/student/tests", label: "Mock Tests", icon: ClipboardList },
   { href: "/student/rankings", label: "Rankings", icon: Trophy },
+  { href: "/student/resources", label: "Study Materials", icon: Library },
   { href: "/student/ask", label: "Ask Question", icon: MessageCircle },
   { href: "/student/chatbot", label: "AI Assistant", icon: Bot },
 ];

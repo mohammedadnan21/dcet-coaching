@@ -18,6 +18,15 @@ export default withAuth(
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
+    // Protect PDF books — only STUDENT or ADMIN with APPROVED status
+    if (pathname.startsWith("/books/")) {
+      const role = token?.role as string;
+      const status = token?.status as string;
+      if (!["STUDENT", "ADMIN"].includes(role) || status !== "APPROVED") {
+        return NextResponse.redirect(new URL("/login", req.url));
+      }
+    }
+
     return NextResponse.next();
   },
   {
@@ -28,7 +37,8 @@ export default withAuth(
         if (
           pathname.startsWith("/admin") ||
           pathname.startsWith("/teacher") ||
-          pathname.startsWith("/student")
+          pathname.startsWith("/student") ||
+          pathname.startsWith("/books/")
         ) {
           return !!token;
         }
@@ -40,5 +50,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
+  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*", "/books/:path*"],
 };

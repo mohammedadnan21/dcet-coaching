@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, Calendar, ClipboardList, MessageCircle, Trophy, Bot, Play, Clock } from "lucide-react";
+import { Video, Calendar, ClipboardList, MessageCircle, Trophy, Bot, Play, Clock, Library } from "lucide-react";
 
 interface Meeting {
   id: string;
@@ -54,8 +54,9 @@ export default function StudentDashboard() {
     { href: "/student/videos", label: "Watch Videos", icon: Video, color: "bg-amber-900/15", iconColor: "text-amber-500" },
     { href: "/student/meetings", label: "Live Classes", icon: Calendar, color: "bg-green-900/15", iconColor: "text-green-500" },
     { href: "/student/tests", label: "Take Test", icon: ClipboardList, color: "bg-purple-900/15", iconColor: "text-purple-400" },
-    { href: "/student/ask", label: "Ask Question", icon: MessageCircle, color: "bg-orange-900/15", iconColor: "text-orange-400" },
+    { href: "/student/resources", label: "Study Materials", icon: Library, color: "bg-yellow-900/15", iconColor: "text-yellow-400" },
     { href: "/student/rankings", label: "View Rankings", icon: Trophy, color: "bg-pink-900/15", iconColor: "text-pink-400" },
+    { href: "/student/ask", label: "Ask Question", icon: MessageCircle, color: "bg-orange-900/15", iconColor: "text-orange-400" },
     { href: "/student/chatbot", label: "AI Assistant", icon: Bot, color: "bg-cyan-900/15", iconColor: "text-cyan-400" },
   ];
 
@@ -90,7 +91,7 @@ export default function StudentDashboard() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
           {quickActions.map((action) => (
             <Link key={action.href} href={action.href}>
               <Card className={`${action.color} border border-amber-900/10 hover:border-amber-700/30 hover:shadow-lg hover:shadow-amber-900/5 transition-all cursor-pointer h-full`}>
