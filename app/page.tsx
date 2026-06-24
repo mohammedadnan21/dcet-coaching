@@ -404,7 +404,8 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Jnanesh Gowda — featured wide card */}
             <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(180,83,9,0.12)] hover:border-amber-700/40">
               <div className="grid md:grid-cols-5 gap-0">
                 <div className="md:col-span-2 relative">
@@ -461,6 +462,52 @@ export default function LandingPage() {
                   <p className="mt-6 text-stone-500 text-xs italic">
                     &ldquo;I don&apos;t follow trends — I build systems that win.&rdquo;
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Lava Kumar — smaller secondary card */}
+            <div className="max-w-2xl mx-auto w-full">
+              <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(180,83,9,0.10)] hover:border-amber-700/40">
+                <div className="grid grid-cols-5 gap-0">
+                  <div className="col-span-2 relative">
+                    <Image
+                      src="/lava-kumar.png"
+                      alt="Lavakumar Arya - Mentor"
+                      width={300}
+                      height={360}
+                      className="w-full h-full object-cover object-top min-h-[220px]"
+                    />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-stone-950/90 to-transparent p-4 sm:hidden">
+                      <h3 className="text-base font-bold text-white">Lavakumar Arya</h3>
+                      <p className="text-amber-400 text-xs font-medium">Mentor</p>
+                    </div>
+                  </div>
+
+                  <div className="col-span-3 p-4 sm:p-6 flex flex-col justify-center">
+                    <div className="hidden sm:block mb-3">
+                      <h3 className="text-lg font-bold text-white">Lavakumar Arya</h3>
+                      <p className="text-amber-400 text-sm font-medium mt-0.5">Mentor — Wintrix Academy</p>
+                    </div>
+                    <p className="text-stone-400 text-xs leading-relaxed mb-4 sm:mt-0 mt-3">
+                      Lavakumar Arya has walked the DCET path himself — he knows the pressure, the pitfalls, and exactly where most students go wrong. He works closely with the Founder and Director as a core part of the Wintrix team, mentoring students with raw, honest, experience-backed guidance that makes a real difference.
+                    </p>
+
+                    <div>
+                      <p className="text-stone-500 text-xs font-medium uppercase tracking-wider mb-2">Focus Areas</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["Student Mentorship", "Exam Strategy", "Doubt Resolution", "Concept Clarity"].map((area) => (
+                          <span key={area} className="px-2.5 py-1 bg-amber-900/20 border border-amber-900/30 rounded-lg text-amber-400 text-xs font-medium">
+                            {area}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-stone-500 text-xs italic">
+                      &ldquo;I know the mistakes — so you don&apos;t have to make them.&rdquo;
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
