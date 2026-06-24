@@ -52,7 +52,7 @@ const achievements = [
   { number: "48", label: "DCET Rank", sublabel: "All Karnataka" },
   { number: "2nd", label: "Hassan District", sublabel: "Top Performer" },
   { number: "9.8", label: "Diploma CGPA", sublabel: "EEE Branch" },
-  { number: "9.10", label: "Current CGPA", sublabel: "RVCE CSE" },
+  { number: "9.19", label: "Current CGPA", sublabel: "RVCE CSE" },
 ];
 
 const features = [
@@ -372,7 +372,7 @@ export default function LandingPage() {
                         { year: "SSLC", score: "91.52%", school: "CKS" },
                         { year: "Diploma (EEE)", score: "9.8 CGPA", school: "Polytechnic" },
                         { year: "DCET", score: "Rank 48", school: "All Karnataka" },
-                        { year: "B.E. (CSE)", score: "9.10 CGPA", school: "RVCE Bengaluru" },
+                        { year: "B.E. (CSE)", score: "9.19 CGPA", school: "RVCE Bengaluru" },
                       ].map((item, index) => (
                         <div key={index} className="flex items-center justify-between py-2 border-b border-amber-900/20 last:border-0">
                           <div>
