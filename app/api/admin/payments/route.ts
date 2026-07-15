@@ -332,3 +332,60 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await validateSessionWithRole("ADMIN");
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    const paymentId = searchParams.get("id");
+
+    if (!paymentId) {
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.findUnique({
+        where: { id: paymentId },
+        select: { id: true, amount: true, feeRecordId: true },
+      });
+
+      if (!payment) {
+        throw new Error("Payment not found");
+      }
+
+      // If linked to a fee record, reverse the amount
+      if (payment.feeRecordId) {
+        const lockedRecords = await tx.$queryRaw<Array<{
+          id: string; totalFee: number; paidAmount: number;
+        }>>`SELECT id, "totalFee", "paidAmount" FROM "FeeRecord" WHERE id = ${payment.feeRecordId} FOR UPDATE`;
+
+        const feeRecord = lockedRecords[0];
+        if (feeRecord) {
+          const newPaid = Math.max(0, feeRecord.paidAmount - payment.amount);
+          const newRemaining = feeRecord.totalFee - newPaid;
+
+          await tx.feeRecord.update({
+            where: { id: payment.feeRecordId },
+            data: {
+              paidAmount: newPaid,
+              remainingAmount: newRemaining,
+              status: newPaid <= 0 ? "PENDING" : newRemaining <= 0 ? "PAID" : "PARTIAL",
+            },
+          });
+        }
+      }
+
+      await tx.payment.delete({ where: { id: paymentId } });
+    });
+
+    return NextResponse.json({ message: "Payment deleted successfully" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to delete payment";
+    console.error("Error deleting payment:", error);
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}

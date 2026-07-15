@@ -35,7 +35,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Search, Plus, Receipt, IndianRupee, AlertCircle, CheckCircle2, Clock, Pencil } from "lucide-react";
+import { Search, Plus, Receipt, IndianRupee, AlertCircle, CheckCircle2, Clock, Pencil, Trash2 } from "lucide-react";
 
 interface Student {
   id: string;
@@ -314,6 +314,25 @@ export default function PaymentsPage() {
     setFormData({ amount: "", totalFee: "", paymentMode: "CASH", purpose: "ADMISSION", description: "" });
   };
 
+  const handleDeletePayment = async (paymentId: string, studentName: string) => {
+    if (!confirm(`Are you sure you want to delete this payment for ${studentName}? This will also update their fee balance.`)) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/admin/payments?id=${paymentId}`, { method: "DELETE" });
+      if (response.ok) {
+        toast({ title: "Payment Deleted", description: `Payment for ${studentName} has been deleted.` });
+        fetchPayments();
+        fetchFeeRecords();
+      } else {
+        const data = await response.json();
+        toast({ title: "Error", description: data.error || "Failed to delete payment", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to delete payment", variant: "destructive" });
+    }
+  };
+
   const openEditDialog = (payment: Payment) => {
     setEditingPayment(payment);
     setEditForm({
@@ -551,6 +570,15 @@ export default function PaymentsPage() {
                               >
                                 <Receipt className="w-3 h-3 mr-1" />
                                 Slip
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-400 border-red-800/30 hover:bg-red-900/20"
+                                onClick={() => handleDeletePayment(payment.id, payment.studentName)}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
                               </Button>
                             </div>
                           </TableCell>
