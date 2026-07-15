@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { useCachedFetch } from "@/hooks/use-cached-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -261,7 +262,7 @@ export default function VideosPage() {
                     </div>
                   )}
                   <a
-                    href={video.youtubeUrl}
+                    href={sanitizeUrl(video.youtubeUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity"

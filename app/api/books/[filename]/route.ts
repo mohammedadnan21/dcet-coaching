@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { validateSessionWithRole } from "@/lib/validate-session";
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
 import path from "path";
@@ -16,17 +16,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { filename: string } }
 ) {
-  // Use getToken — reads JWT from cookie directly, zero DB calls, very fast
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token) {
+  const session = await validateSessionWithRole("STUDENT", "ADMIN");
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (token.role !== "STUDENT" && token.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  if (token.status !== "APPROVED") {
-    return NextResponse.json({ error: "Account not approved" }, { status: 403 });
   }
 
   const filename = params.filename;

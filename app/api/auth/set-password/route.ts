@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { setPasswordSchema } from "@/lib/validations";
+import { rateLimitDb } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,17 +18,27 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validation.data;
 
-    // Check if OTP was verified
+    // Rate limit: 5 attempts per email per 10 minutes
+    const rateLimitResult = await rateLimitDb(`set-password:${email.toLowerCase()}`, 5, 600_000);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Check if OTP was verified AND not expired (must be within 10 minutes of verification)
     const otpRecord = await prisma.otpVerification.findFirst({
       where: {
         email,
         verified: true,
+        expiresAt: { gt: new Date() },
       },
     });
 
     if (!otpRecord) {
       return NextResponse.json(
-        { error: "Please verify your email first" },
+        { error: "Verification expired. Please verify your email again." },
         { status: 400 }
       );
     }

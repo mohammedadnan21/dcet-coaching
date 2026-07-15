@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { validateSessionWithRole } from "@/lib/validate-session";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
+    const session = await validateSessionWithRole("STUDENT", "ADMIN");
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (session.user.role !== "STUDENT" && session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const studentId = session.user.id;

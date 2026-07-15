@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { useCachedFetch } from "@/hooks/use-cached-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -295,7 +296,7 @@ export default function MeetingsPage() {
                     <div className="flex items-center gap-2">
                       {!meeting.cancelled && upcoming && (
                         <>
-                          <a href={meeting.zoomLink} target="_blank" rel="noopener noreferrer">
+                          <a href={sanitizeUrl(meeting.zoomLink)} target="_blank" rel="noopener noreferrer">
                             <Button size="sm" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
                               <Video className="w-4 h-4 mr-1" />
                               Join

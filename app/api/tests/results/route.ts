@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { validateSessionWithRole } from "@/lib/validate-session";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -19,14 +18,9 @@ function parsePageLimit(searchParams: URLSearchParams) {
 // GET - Fetch test results (admin/teacher only)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await validateSessionWithRole("ADMIN", "TEACHER");
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Only admin and teacher can view all results
-    if (session.user.role !== "ADMIN" && session.user.role !== "TEACHER") {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const searchParams = request.nextUrl.searchParams;

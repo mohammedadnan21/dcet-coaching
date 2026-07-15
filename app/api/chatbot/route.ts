@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { validateSession } from "@/lib/validate-session";
 import { prisma } from "@/lib/db";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { rateLimit } from "@/lib/rate-limit";
@@ -29,7 +28,7 @@ Always be positive and supportive. Remember: "Education is the most powerful wea
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await validateSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -135,7 +134,7 @@ Provide a helpful, concise response:`;
 // Get chat history
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await validateSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -156,7 +155,7 @@ export async function GET(request: NextRequest) {
 // Clear chat history
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await validateSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

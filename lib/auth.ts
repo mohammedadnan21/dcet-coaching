@@ -111,7 +111,27 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.status = user.status;
         token.sessionToken = user.sessionToken;
+        token.lastRefreshed = Date.now();
       }
+
+      // Refresh role/status from DB every 5 minutes
+      const lastRefreshed = (token.lastRefreshed as number) || 0;
+      if (Date.now() - lastRefreshed > 5 * 60 * 1000) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, status: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.status = dbUser.status;
+          }
+          token.lastRefreshed = Date.now();
+        } catch {
+          // On DB error, keep existing token values
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -122,6 +142,22 @@ export const authOptions: NextAuthOptions = {
         session.user.sessionToken = token.sessionToken as string;
       }
       return session;
+    },
+  },
+  events: {
+    async signOut(message) {
+      // Invalidate server-side device session on logout
+      const token = "token" in message ? message.token : null;
+      if (token?.sessionToken) {
+        try {
+          await prisma.deviceSession.updateMany({
+            where: { token: token.sessionToken as string },
+            data: { active: false },
+          });
+        } catch {
+          // Non-critical — session will expire naturally
+        }
+      }
     },
   },
   pages: {

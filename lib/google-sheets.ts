@@ -1,4 +1,7 @@
+import crypto from "crypto";
+
 const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+const GOOGLE_SHEET_SECRET = process.env.GOOGLE_SHEET_SECRET || "wintrix-webhook-default";
 
 interface PaymentSheetData {
   receiptNo: string;
@@ -26,26 +29,37 @@ export async function syncPaymentToSheet(data: PaymentSheetData): Promise<void> 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
+    const payload = JSON.stringify({
+      receiptNo: data.receiptNo,
+      studentName: data.studentName,
+      studentPhone: data.studentPhone,
+      amount: data.amount,
+      paymentMode: data.paymentMode,
+      purpose: data.purpose,
+      description: data.description || "",
+      installmentNo: data.installmentNo || "Full",
+      totalFee: data.totalFee || data.amount,
+      paidSoFar: data.paidSoFar || data.amount,
+      remainingBalance: data.remainingBalance || 0,
+      recordedBy: data.recordedBy,
+      date: new Date(data.paidAt).toLocaleDateString("en-IN"),
+      time: new Date(data.paidAt).toLocaleTimeString("en-IN"),
+    });
+
+    // HMAC signature to verify request authenticity at the webhook
+    const signature = crypto
+      .createHmac("sha256", GOOGLE_SHEET_SECRET)
+      .update(payload)
+      .digest("hex");
+
     const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Signature": signature,
+      },
       signal: controller.signal,
-      body: JSON.stringify({
-        receiptNo: data.receiptNo,
-        studentName: data.studentName,
-        studentPhone: data.studentPhone,
-        amount: data.amount,
-        paymentMode: data.paymentMode,
-        purpose: data.purpose,
-        description: data.description || "",
-        installmentNo: data.installmentNo || "Full",
-        totalFee: data.totalFee || data.amount,
-        paidSoFar: data.paidSoFar || data.amount,
-        remainingBalance: data.remainingBalance || 0,
-        recordedBy: data.recordedBy,
-        date: new Date(data.paidAt).toLocaleDateString("en-IN"),
-        time: new Date(data.paidAt).toLocaleTimeString("en-IN"),
-      }),
+      body: payload,
     });
 
     clearTimeout(timeout);

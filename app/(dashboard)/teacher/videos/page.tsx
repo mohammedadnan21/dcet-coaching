@@ -2,6 +2,7 @@
 
 // This is the same as admin videos page but with teacher context
 import { useState, useEffect } from "react";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,7 @@ export default function TeacherVideosPage() {
                     </div>
                   )}
                   <a
-                    href={video.youtubeUrl}
+                    href={sanitizeUrl(video.youtubeUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity"

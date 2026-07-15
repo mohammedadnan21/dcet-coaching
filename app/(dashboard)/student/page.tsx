@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video, Calendar, ClipboardList, MessageCircle, Trophy, Bot, Play, Clock, Library } from "lucide-react";
@@ -143,7 +144,7 @@ export default function StudentDashboard() {
                         </p>
                       </div>
                     </div>
-                    <a href={meeting.zoomLink} target="_blank" rel="noopener noreferrer">
+                    <a href={sanitizeUrl(meeting.zoomLink)} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
                         <Play className="w-4 h-4 mr-1" />
                         Join

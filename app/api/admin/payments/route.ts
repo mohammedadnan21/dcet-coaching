@@ -1,15 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { validateSessionWithRole } from "@/lib/validate-session";
 import { prisma } from "@/lib/db";
 import { syncPaymentToSheet } from "@/lib/google-sheets";
 
-function generateReceiptNo(): string {
+async function generateReceiptNo(tx: { payment: { findFirst: Function } }): Promise<string> {
   const now = new Date();
   const year = now.getFullYear().toString().slice(-2);
   const month = (now.getMonth() + 1).toString().padStart(2, "0");
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `WA${year}${month}-${random}`;
+  const prefix = `WA${year}${month}-`;
+
+  // Get the latest receipt with this prefix to generate sequential number
+  const latest = await tx.payment.findFirst({
+    where: { receiptNo: { startsWith: prefix } },
+    orderBy: { createdAt: "desc" },
+    select: { receiptNo: true },
+  });
+
+  let nextNum = 1001;
+  if (latest) {
+    const lastNum = parseInt(latest.receiptNo.split("-")[1]);
+    if (!isNaN(lastNum)) nextNum = lastNum + 1;
+  }
+
+  return `${prefix}${nextNum}`;
 }
 
 function isValidAmount(value: unknown): boolean {
@@ -19,9 +32,8 @@ function isValidAmount(value: unknown): boolean {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "ADMIN") {
+    const session = await validateSessionWithRole("ADMIN");
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -71,9 +83,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "ADMIN") {
+    const session = await validateSessionWithRole("ADMIN");
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -110,31 +121,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    let receiptNo = generateReceiptNo();
-    let exists = await prisma.payment.findUnique({ where: { receiptNo } });
-    while (exists) {
-      receiptNo = generateReceiptNo();
-      exists = await prisma.payment.findUnique({ where: { receiptNo } });
-    }
-
     const paidAmount = Number(amount);
 
     // Use a transaction to ensure fee record + payment are created atomically
     const payment = await prisma.$transaction(async (tx) => {
+      const receiptNo = await generateReceiptNo(tx);
       let linkedFeeRecordId = feeRecordId || null;
       let installmentNo: number | null = null;
 
       if (feeRecordId) {
-        const feeRecord = await tx.feeRecord.findUnique({
-          where: { id: feeRecordId },
-          include: { payments: { select: { id: true } } },
-        });
+        // Row-level lock to prevent concurrent payment race conditions
+        const lockedRecords = await tx.$queryRaw<Array<{
+          id: string; studentId: string; totalFee: number;
+          paidAmount: number; remainingAmount: number;
+        }>>`SELECT id, "studentId", "totalFee", "paidAmount", "remainingAmount" FROM "FeeRecord" WHERE id = ${feeRecordId} FOR UPDATE`;
 
+        const feeRecord = lockedRecords[0];
         if (!feeRecord) {
           throw new Error("Fee record not found");
         }
 
-        // Security: verify fee record belongs to same student
         if (feeRecord.studentId !== studentId) {
           throw new Error("Fee record does not belong to this student");
         }
@@ -143,7 +149,8 @@ export async function POST(request: NextRequest) {
           throw new Error(`Amount exceeds remaining balance of ₹${feeRecord.remainingAmount.toLocaleString("en-IN")}`);
         }
 
-        installmentNo = feeRecord.payments.length + 1;
+        const paymentCount = await tx.payment.count({ where: { feeRecordId } });
+        installmentNo = paymentCount + 1;
         const newPaid = feeRecord.paidAmount + paidAmount;
         const newRemaining = feeRecord.totalFee - newPaid;
 
@@ -227,9 +234,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "ADMIN") {
+    const session = await validateSessionWithRole("ADMIN");
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -256,9 +262,15 @@ export async function PUT(request: NextRequest) {
 
       const newAmount = amount ? Number(amount) : existingPayment.amount;
 
-      // If amount changed and payment is linked to a fee record, update the fee record
+      // If amount changed and payment is linked to a fee record, update with row lock
       if (existingPayment.feeRecordId && newAmount !== existingPayment.amount) {
-        const feeRecord = existingPayment.feeRecord!;
+        const lockedRecords = await tx.$queryRaw<Array<{
+          id: string; totalFee: number; paidAmount: number; remainingAmount: number;
+        }>>`SELECT id, "totalFee", "paidAmount", "remainingAmount" FROM "FeeRecord" WHERE id = ${existingPayment.feeRecordId} FOR UPDATE`;
+
+        const feeRecord = lockedRecords[0];
+        if (!feeRecord) throw new Error("Fee record not found");
+
         const amountDifference = newAmount - existingPayment.amount;
         const newPaidAmount = feeRecord.paidAmount + amountDifference;
         const newRemaining = feeRecord.totalFee - newPaidAmount;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,7 +230,7 @@ export default function TeacherMeetingsPage() {
                     </div>
                     {!meeting.cancelled && upcoming && (
                       <div className="flex gap-2">
-                        <a href={meeting.zoomLink} target="_blank" rel="noopener noreferrer">
+                        <a href={sanitizeUrl(meeting.zoomLink)} target="_blank" rel="noopener noreferrer">
                           <Button size="sm" className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white">
                             <Video className="w-4 h-4 mr-1" />Join
                           </Button>

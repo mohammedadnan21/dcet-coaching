@@ -6,14 +6,6 @@ import { rateLimitDb } from "@/lib/rate-limit";
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = await rateLimitDb(`otp-verify:${ip}`, 10, 60_000);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Too many attempts. Please try again after a minute." },
-        { status: 429 }
-      );
-    }
-
     const body = await request.json();
     const validation = verifyOtpSchema.safeParse(body);
 
@@ -25,6 +17,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, otp } = validation.data;
+
+    // Rate limit by IP AND by email to prevent brute-force from multiple IPs
+    const [ipLimit, emailLimit] = await Promise.all([
+      rateLimitDb(`otp-verify:${ip}`, 10, 60_000),
+      rateLimitDb(`otp-verify-email:${email.toLowerCase()}`, 5, 300_000),
+    ]);
+
+    if (!ipLimit.success || !emailLimit.success) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
 
     // Find OTP record
     const otpRecord = await prisma.otpVerification.findFirst({

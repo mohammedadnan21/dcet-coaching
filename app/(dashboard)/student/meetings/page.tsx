@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { sanitizeUrl } from "@/lib/sanitize-url";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Video, Play } from "lucide-react";
 
@@ -118,7 +119,7 @@ export default function StudentMeetingsPage() {
                         )}
                       </div>
                     </div>
-                    <a href={meeting.zoomLink} target="_blank" rel="noopener noreferrer" className="self-start sm:self-auto">
+                    <a href={sanitizeUrl(meeting.zoomLink)} target="_blank" rel="noopener noreferrer" className="self-start sm:self-auto">
                       <Button
                         className={
                           isNow
