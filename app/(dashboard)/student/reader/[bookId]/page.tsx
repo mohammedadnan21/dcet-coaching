@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, createContext, useContext } from "react";
 import { ArrowLeft, ChevronUp } from "lucide-react";
 
 const BOOK_CONFIG: Record<string, { title: string; pages: number; folder: string }> = {
@@ -11,6 +11,8 @@ const BOOK_CONFIG: Record<string, { title: string; pages: number; folder: string
   "dcet-2026": { title: "DCET 2026", pages: 51, folder: "dcet-2026" },
   "dcet-complete": { title: "DCET 2023–2026 Complete", pages: 181, folder: "dcet-complete" },
 };
+
+const ScrollContainerContext = createContext<React.RefObject<HTMLDivElement | null>>({ current: null });
 
 export default function ReaderPage() {
   const { bookId } = useParams();
@@ -76,27 +78,28 @@ export default function ReaderPage() {
       </div>
 
       {/* Scrollable image container */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-smooth"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-        <div className="max-w-3xl mx-auto py-4 px-2 sm:px-4 space-y-1">
-          {pages.map((page) => (
-            <LazyPage
-              key={page}
-              page={page}
-              folder={book.folder}
-              totalPages={book.pages}
-            />
-          ))}
-        </div>
+      <ScrollContainerContext.Provider value={containerRef}>
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="max-w-3xl mx-auto py-4 px-2 sm:px-4 space-y-1">
+            {pages.map((page) => (
+              <LazyPage
+                key={page}
+                page={page}
+                folder={book.folder}
+                totalPages={book.pages}
+              />
+            ))}
+          </div>
 
-        {/* End marker */}
-        <div className="text-center py-8 text-stone-600 text-xs">
-          End of {book.title} · {book.pages} pages
+          <div className="text-center py-8 text-stone-600 text-xs">
+            End of {book.title} · {book.pages} pages
+          </div>
         </div>
-      </div>
+      </ScrollContainerContext.Provider>
 
       {/* Scroll to top button */}
       {showScrollTop && (
@@ -113,8 +116,9 @@ export default function ReaderPage() {
 
 function LazyPage({ page, folder, totalPages }: { page: number; folder: string; totalPages: number }) {
   const ref = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useContext(ScrollContainerContext);
   const [isVisible, setIsVisible] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
 
   useEffect(() => {
     const el = ref.current;
@@ -127,44 +131,68 @@ function LazyPage({ page, folder, totalPages }: { page: number; folder: string; 
           observer.disconnect();
         }
       },
-      { rootMargin: "600px 0px" }
+      {
+        root: scrollContainerRef.current,
+        rootMargin: "800px 0px",
+      }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [scrollContainerRef]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    setStatus("loading");
+  }, [isVisible]);
 
   const padded = String(page).padStart(totalPages > 99 ? 3 : 2, "0");
   const src = `/books/${folder}/page-${padded}.webp`;
+
+  const handleRetry = () => {
+    setStatus("loading");
+  };
 
   return (
     <div
       ref={ref}
       data-page={page}
       className="relative bg-stone-800/30 rounded overflow-hidden"
-      style={{ minHeight: isVisible && loaded ? "auto" : "calc(150vw * 0.75)" }}
+      style={{ aspectRatio: "0.72" }}
     >
-      {isVisible && (
+      {isVisible && status !== "error" && (
         <>
-          {!loaded && (
+          {status === "loading" && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={status === "loading" ? src : `${src}-retry`}
             src={src}
             alt={`Page ${page} of ${totalPages}`}
-            className={`w-full h-auto block transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`}
-            onLoad={() => setLoaded(true)}
-            onError={() => setLoaded(true)}
+            className={`w-full h-full object-contain block transition-opacity duration-200 ${status === "loaded" ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setStatus("loaded")}
+            onError={() => setStatus("error")}
             decoding="async"
           />
         </>
       )}
+      {status === "error" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <p className="text-stone-500 text-sm">Failed to load page {page}</p>
+          <button
+            onClick={handleRetry}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
       {!isVisible && (
-        <div className="absolute bottom-2 right-2 text-stone-600 text-xs">
-          Page {page}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-stone-700 text-xs">Page {page}</span>
         </div>
       )}
     </div>
