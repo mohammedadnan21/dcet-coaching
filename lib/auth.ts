@@ -56,31 +56,42 @@ export const authOptions: NextAuthOptions = {
 
         // Handle single device login
         const deviceId = credentials.deviceId || uuidv4();
-        const token = uuidv4();
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-        // First: invalidate old sessions and clean up expired ones
-        await Promise.all([
-          prisma.deviceSession.updateMany({
-            where: { userId: user.id, active: true },
-            data: { active: false },
-          }),
-          prisma.deviceSession.deleteMany({
-            where: {
-              userId: user.id,
-              expiresAt: { lt: new Date() },
-            },
-          }),
-        ]);
-
-        // Then: create the new active session (must run AFTER deactivation)
-        await prisma.deviceSession.upsert({
-          where: {
-            userId_deviceId: { userId: user.id, deviceId: deviceId },
-          },
-          update: { token, active: true, expiresAt },
-          create: { userId: user.id, deviceId, token, active: true, expiresAt },
+        // Check if this device already has an active session
+        const existingSession = await prisma.deviceSession.findUnique({
+          where: { userId_deviceId: { userId: user.id, deviceId: deviceId } },
         });
+
+        let sessionToken: string;
+
+        if (existingSession && existingSession.active && existingSession.expiresAt > new Date()) {
+          // Same device, already has active session — reuse the token
+          sessionToken = existingSession.token;
+          await prisma.deviceSession.update({
+            where: { userId_deviceId: { userId: user.id, deviceId: deviceId } },
+            data: { expiresAt },
+          });
+        } else {
+          // New device or expired session — invalidate OTHER devices, create new session
+          sessionToken = uuidv4();
+
+          await Promise.all([
+            prisma.deviceSession.updateMany({
+              where: { userId: user.id, active: true, deviceId: { not: deviceId } },
+              data: { active: false },
+            }),
+            prisma.deviceSession.deleteMany({
+              where: { userId: user.id, expiresAt: { lt: new Date() } },
+            }),
+          ]);
+
+          await prisma.deviceSession.upsert({
+            where: { userId_deviceId: { userId: user.id, deviceId: deviceId } },
+            update: { token: sessionToken, active: true, expiresAt },
+            create: { userId: user.id, deviceId, token: sessionToken, active: true, expiresAt },
+          });
+        }
 
         return {
           id: user.id,
@@ -88,7 +99,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           status: user.status,
-          sessionToken: token,
+          sessionToken,
         };
       },
     }),
