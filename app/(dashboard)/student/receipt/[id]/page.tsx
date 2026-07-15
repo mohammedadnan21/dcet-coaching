@@ -260,7 +260,7 @@ export default function StudentReceiptPage() {
         @media print {
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 0;
           }
           html, body, #__next, main, div[class*="stone"],
           div[class*="dark"], div[class*="dashboard"] {
@@ -268,6 +268,9 @@ export default function StudentReceiptPage() {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             margin: 0 !important;
+            padding: 15mm !important;
+          }
+          body {
             padding: 0 !important;
           }
           aside, nav, header, [class*="sidebar"], .print\\:hidden,
@@ -277,6 +280,7 @@ export default function StudentReceiptPage() {
           main {
             width: 100% !important;
             min-height: 0 !important;
+            padding: 10mm !important;
           }
         }
       `}</style>
