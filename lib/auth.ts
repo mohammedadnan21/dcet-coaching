@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         const token = uuidv4();
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-        // Invalidate old sessions + create new one in parallel (3 DB calls → 1 round-trip)
+        // First: invalidate old sessions and clean up expired ones
         await Promise.all([
           prisma.deviceSession.updateMany({
             where: { userId: user.id, active: true },
@@ -68,20 +68,19 @@ export const authOptions: NextAuthOptions = {
           prisma.deviceSession.deleteMany({
             where: {
               userId: user.id,
-              OR: [
-                { expiresAt: { lt: new Date() } },
-                { active: false },
-              ],
+              expiresAt: { lt: new Date() },
             },
-          }),
-          prisma.deviceSession.upsert({
-            where: {
-              userId_deviceId: { userId: user.id, deviceId: deviceId },
-            },
-            update: { token, active: true, expiresAt },
-            create: { userId: user.id, deviceId, token, active: true, expiresAt },
           }),
         ]);
+
+        // Then: create the new active session (must run AFTER deactivation)
+        await prisma.deviceSession.upsert({
+          where: {
+            userId_deviceId: { userId: user.id, deviceId: deviceId },
+          },
+          update: { token, active: true, expiresAt },
+          create: { userId: user.id, deviceId, token, active: true, expiresAt },
+        });
 
         return {
           id: user.id,
