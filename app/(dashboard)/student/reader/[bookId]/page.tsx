@@ -157,7 +157,7 @@ function LazyPage({ page, folder, totalPages }: { page: number; folder: string; 
             alt={`Page ${page} of ${totalPages}`}
             className={`w-full h-auto block transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setLoaded(true)}
-            loading="lazy"
+            onError={() => setLoaded(true)}
             decoding="async"
           />
         </>
