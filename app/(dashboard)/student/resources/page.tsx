@@ -13,6 +13,7 @@ const books = [
     spineColor: "#1d4ed8",
     coverAccent: "#3b82f6",
     label: null,
+    useReader: true,
   },
   {
     id: "dcet-2024",
@@ -24,6 +25,7 @@ const books = [
     spineColor: "#7c3aed",
     coverAccent: "#a855f7",
     label: null,
+    useReader: true,
   },
   {
     id: "dcet-2025",
@@ -35,6 +37,7 @@ const books = [
     spineColor: "#047857",
     coverAccent: "#10b981",
     label: null,
+    useReader: true,
   },
   {
     id: "dcet-2026",
@@ -46,6 +49,7 @@ const books = [
     spineColor: "#b45309",
     coverAccent: "#f59e0b",
     label: "Latest",
+    useReader: true,
   },
 ];
 
@@ -174,7 +178,7 @@ export default function ResourcesPage() {
       {/* ── Featured — Complete Collection ─────────── */}
       <section>
         <p className="text-xs font-semibold tracking-widest uppercase text-stone-500 mb-4">Featured</p>
-        <a href={`/books/${featuredBook.file}#toolbar=0&navpanes=0`} target="_blank" rel="noopener noreferrer">
+        <a href="/student/reader/dcet-complete">
           <div className="group relative rounded-2xl border border-amber-800/30 bg-stone-900 hover:border-amber-600/50 hover:bg-stone-900/80 transition-all duration-200 overflow-hidden cursor-pointer">
             <div className="absolute top-0 left-0 right-0 h-px bg-amber-500/40" />
 
@@ -222,7 +226,7 @@ export default function ResourcesPage() {
         <p className="text-xs font-semibold tracking-widest uppercase text-stone-500 mb-4">Year-wise Papers</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {books.map((book) => (
-            <a key={book.id} href={`/books/${book.file}#toolbar=0&navpanes=0`} target="_blank" rel="noopener noreferrer">
+            <a key={book.id} href={book.useReader ? `/student/reader/${book.id}` : `/books/${book.file}#toolbar=0&navpanes=0`} target={book.useReader ? undefined : "_blank"} rel={book.useReader ? undefined : "noopener noreferrer"}>
               <div
                 className="group relative rounded-xl border bg-stone-900 hover:bg-stone-900/80 transition-all duration-200 overflow-hidden h-full flex flex-col cursor-pointer"
                 style={{ borderColor: `${book.coverAccent}20` }}
