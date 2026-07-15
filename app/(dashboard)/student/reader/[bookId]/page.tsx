@@ -5,11 +5,11 @@ import { useEffect, useRef, useState, useCallback, createContext, useContext } f
 import { ArrowLeft, ChevronUp } from "lucide-react";
 
 const BOOK_CONFIG: Record<string, { title: string; pages: number; folder: string }> = {
-  "dcet-2023": { title: "DCET 2023", pages: 45, folder: "dcet-2023" },
-  "dcet-2024": { title: "DCET 2024", pages: 45, folder: "dcet-2024" },
-  "dcet-2025": { title: "DCET 2025", pages: 49, folder: "dcet-2025" },
-  "dcet-2026": { title: "DCET 2026", pages: 51, folder: "dcet-2026" },
-  "dcet-complete": { title: "DCET 2023–2026 Complete", pages: 181, folder: "dcet-complete" },
+  "dcet-2023": { title: "DCET 2023", pages: 45, folder: "reader-dcet-2023" },
+  "dcet-2024": { title: "DCET 2024", pages: 45, folder: "reader-dcet-2024" },
+  "dcet-2025": { title: "DCET 2025", pages: 49, folder: "reader-dcet-2025" },
+  "dcet-2026": { title: "DCET 2026", pages: 51, folder: "reader-dcet-2026" },
+  "dcet-complete": { title: "DCET 2023–2026 Complete", pages: 181, folder: "reader-dcet-complete" },
 };
 
 const ScrollContainerContext = createContext<React.RefObject<HTMLDivElement | null>>({ current: null });
@@ -147,7 +147,7 @@ function LazyPage({ page, folder, totalPages }: { page: number; folder: string; 
   }, [isVisible]);
 
   const padded = String(page).padStart(totalPages > 99 ? 3 : 2, "0");
-  const src = `/books/${folder}/page-${padded}.webp`;
+  const src = `/${folder}/page-${padded}.webp`;
 
   const handleRetry = () => {
     setStatus("loading");
