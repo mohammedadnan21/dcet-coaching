@@ -314,6 +314,25 @@ export default function PaymentsPage() {
     setFormData({ amount: "", totalFee: "", paymentMode: "CASH", purpose: "ADMISSION", description: "" });
   };
 
+  const handleDeleteFeeRecord = async (feeRecordId: string, studentName: string) => {
+    if (!confirm(`Are you sure you want to delete the entire fee record for ${studentName}? This will also delete ALL payments linked to it.`)) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/admin/fee-records?id=${feeRecordId}`, { method: "DELETE" });
+      if (response.ok) {
+        toast({ title: "Fee Record Deleted", description: `Fee record and all payments for ${studentName} have been deleted.` });
+        fetchPayments();
+        fetchFeeRecords();
+      } else {
+        const data = await response.json();
+        toast({ title: "Error", description: data.error || "Failed to delete fee record", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to delete fee record", variant: "destructive" });
+    }
+  };
+
   const handleDeletePayment = async (paymentId: string, studentName: string) => {
     if (!confirm(`Are you sure you want to delete this payment for ${studentName}? This will also update their fee balance.`)) {
       return;
@@ -625,6 +644,15 @@ export default function PaymentsPage() {
                           >
                             <Plus className="w-3 h-3 mr-1" />
                             Pay Installment
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-400 border-red-800/30 hover:bg-red-900/20"
+                            onClick={() => handleDeleteFeeRecord(record.id, record.student.name)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </div>
