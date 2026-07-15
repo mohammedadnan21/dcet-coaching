@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +10,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+
+function getDeviceId(): string {
+  const key = "wintrix_device_id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
 import { Eye, EyeOff, GraduationCap, Shield, BookOpen } from "lucide-react";
 import { Logo } from "@/components/logo";
 
@@ -18,6 +28,11 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Warm up DB while user types credentials
+  useEffect(() => {
+    fetch("/api/keep-alive").catch(() => {});
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState(searchParams.get("role") || "student");
@@ -30,6 +45,7 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email,
         password,
+        deviceId: getDeviceId(),
         redirect: false,
       });
 

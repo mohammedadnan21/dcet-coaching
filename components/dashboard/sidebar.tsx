@@ -24,6 +24,8 @@ import {
   Trophy,
   Bot,
   Library,
+  IndianRupee,
+  UserCircle,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -41,6 +43,7 @@ const adminLinks: SidebarLink[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "User Management", icon: Users },
   { href: "/admin/approvals", label: "Pending Approvals", icon: UserCheck },
+  { href: "/admin/payments", label: "Payments", icon: IndianRupee },
   { href: "/admin/subjects", label: "Subjects", icon: BookOpen },
   { href: "/admin/videos", label: "Videos", icon: Video },
   { href: "/admin/meetings", label: "Meetings", icon: Calendar },
@@ -67,6 +70,7 @@ const studentLinks: SidebarLink[] = [
   { href: "/student/resources", label: "Study Materials", icon: Library },
   { href: "/student/ask", label: "Ask Question", icon: MessageCircle },
   { href: "/student/chatbot", label: "AI Assistant", icon: Bot },
+  { href: "/student/profile", label: "Profile", icon: UserCircle },
 ];
 
 const apiMap: Record<string, string[]> = {
@@ -74,14 +78,18 @@ const apiMap: Record<string, string[]> = {
   "/admin/meetings": ["/api/meetings"],
   "/admin/tests": ["/api/tests", "/api/subjects"],
   "/admin/users": ["/api/admin/users"],
+  "/admin/payments": ["/api/admin/payments"],
   "/admin/questions": ["/api/questions"],
   "/admin/subjects": ["/api/subjects"],
   "/admin/approvals": ["/api/admin/users?status=PENDING"],
   "/admin": ["/api/admin/stats"],
-  "/student/videos": ["/api/videos"],
+  "/student/subjects": ["/api/subjects"],
+  "/student/profile": ["/api/student/profile"],
+  "/student/videos": ["/api/videos?limit=100", "/api/subjects"],
   "/student/meetings": ["/api/meetings?upcoming=true"],
   "/student/tests": ["/api/tests"],
   "/student/rankings": ["/api/tests"],
+  "/student/resources": ["/api/subjects"],
   "/student": ["/api/meetings?upcoming=true", "/api/quotes/random"],
   "/teacher/videos": ["/api/videos"],
   "/teacher/meetings": ["/api/meetings"],

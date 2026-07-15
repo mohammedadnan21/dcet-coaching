@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import useSWR from "swr";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Video, ClipboardList, ChevronRight } from "lucide-react";
+import { fetcher } from "@/lib/fetcher";
 
 interface Subject {
   id: string;
@@ -13,25 +14,11 @@ interface Subject {
 }
 
 export default function StudentSubjectsPage() {
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSubjects();
-  }, []);
-
-  const fetchSubjects = async () => {
-    try {
-      const response = await fetch("/api/subjects");
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Failed to fetch subjects:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: subjects, isLoading: loading } = useSWR<Subject[]>(
+    "/api/subjects",
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
 
   return (
     <div className="space-y-6">
@@ -42,7 +29,7 @@ export default function StudentSubjectsPage() {
 
       {loading ? (
         <div className="text-center py-12 text-stone-400">Loading subjects...</div>
-      ) : subjects.length === 0 ? (
+      ) : !subjects || subjects.length === 0 ? (
         <Card className="border border-amber-900/15 bg-stone-900 shadow-md">
           <CardContent className="py-12 text-center">
             <BookOpen className="w-16 h-16 text-stone-500 mx-auto mb-4" />

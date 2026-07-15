@@ -14,6 +14,11 @@ export default function StudentLayout({
   const { session, status } = useSessionCheck();
   const router = useRouter();
 
+  // Warm up DB connection as soon as layout mounts
+  useEffect(() => {
+    fetch("/api/keep-alive").catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login?role=student");

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Video, Play, Filter } from "lucide-react";
+import { fetcher } from "@/lib/fetcher";
 
 interface VideoItem {
   id: string;
@@ -29,47 +31,26 @@ interface Subject {
 
 export default function StudentVideosPage() {
   const searchParams = useSearchParams();
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<string>(searchParams.get("subject") || "");
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
 
-  useEffect(() => {
-    fetchSubjects();
-  }, []);
+  const { data: subjects } = useSWR<Subject[]>(
+    "/api/subjects",
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
 
-  useEffect(() => {
-    fetchVideos();
-  }, [selectedSubject]);
+  const videoUrl = selectedSubject && selectedSubject !== "all"
+    ? `/api/videos?subjectId=${selectedSubject}&limit=100`
+    : "/api/videos?limit=100";
 
-  const fetchSubjects = async () => {
-    try {
-      const response = await fetch("/api/subjects");
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setSubjects(data);
-    } catch (error) {
-      console.error("Failed to fetch subjects:", error);
-    }
-  };
+  const { data: videoData, isLoading: loading } = useSWR<{ items: VideoItem[] }>(
+    videoUrl,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000 }
+  );
 
-  const fetchVideos = async () => {
-    setLoading(true);
-    try {
-      const url = selectedSubject && selectedSubject !== "all"
-        ? `/api/videos?subjectId=${selectedSubject}&limit=100`
-        : "/api/videos?limit=100";
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setVideos(data.items);
-    } catch (error) {
-      console.error("Failed to fetch videos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const videos = videoData?.items || [];
 
   const getYoutubeVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
@@ -95,7 +76,7 @@ export default function StudentVideosPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Subjects</SelectItem>
-            {subjects.map((subject) => (
+            {(subjects || []).map((subject) => (
               <SelectItem key={subject.id} value={subject.id}>
                 {subject.name}
               </SelectItem>

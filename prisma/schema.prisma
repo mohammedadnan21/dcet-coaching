@@ -228,8 +228,62 @@ model User {
   teacherSubjects                   TeacherSubject[]
   testAttempts                      TestAttempt[]
   videos                            Video[]
+  payments                          Payment[]
+  recordedPayments                  Payment[]        @relation("PaymentRecordedBy")
+  feeRecords                        FeeRecord[]
 
   @@index([role, status])
+}
+
+model FeeRecord {
+  id            String    @id @default(cuid())
+  studentId     String
+  totalFee      Float
+  paidAmount    Float     @default(0)
+  remainingAmount Float
+  feeType       String    @default("ADMISSION")
+  status        String    @default("PENDING")
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  student       User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payments      Payment[]
+
+  @@index([studentId])
+  @@index([status])
+}
+
+model Payment {
+  id            String     @id @default(cuid())
+  receiptNo     String     @unique
+  studentId     String
+  studentName   String
+  studentPhone  String
+  amount        Float
+  paymentMode   String     @default("CASH")
+  purpose       String     @default("ADMISSION")
+  description   String?
+  feeRecordId   String?
+  installmentNo Int?
+  recordedById  String
+  paidAt        DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  student       User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  recordedBy    User       @relation("PaymentRecordedBy", fields: [recordedById], references: [id])
+  feeRecord     FeeRecord? @relation(fields: [feeRecordId], references: [id])
+
+  @@index([studentId])
+  @@index([receiptNo])
+  @@index([paidAt])
+  @@index([feeRecordId])
+}
+
+model RateLimitEntry {
+  key       String   @id
+  count     Int      @default(1)
+  resetAt   DateTime
+
+  @@index([resetAt])
 }
 
 model Video {

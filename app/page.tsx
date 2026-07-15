@@ -27,6 +27,7 @@ import {
   Cpu,
   Shield,
   Sparkles,
+  Instagram,
 } from "lucide-react";
 
 const motivationQuotes = [
@@ -466,7 +467,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Lava Kumar — smaller secondary card */}
+            {/* Lava Kumar section hidden for now — uncomment to restore
             <div className="max-w-2xl mx-auto w-full">
               <div className="group bg-stone-900 border border-amber-900/20 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(180,83,9,0.10)] hover:border-amber-700/40">
                 <div className="grid grid-cols-5 gap-0">
@@ -511,6 +512,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+            */}
           </div>
         </div>
       </section>
@@ -645,6 +647,15 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-amber-900/20 mt-8 pt-8 text-center text-stone-500">
             <p>&copy; {new Date().getFullYear()} Wintrix Academy. All rights reserved.</p>
+            <a
+              href="https://www.instagram.com/wintrixacademy?igsh=MWlseXJjMjE3cGR0Zw=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-3 text-stone-400 hover:text-amber-400 transition"
+            >
+              <Instagram className="w-5 h-5" />
+              <span className="text-sm">@wintrixacademy</span>
+            </a>
           </div>
         </div>
       </footer>

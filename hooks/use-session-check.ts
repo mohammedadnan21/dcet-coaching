@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { toast } from "@/hooks/use-toast";
 
 export function useSessionCheck() {
   const { data: session, status } = useSession();
+  const hasChecked = useRef(false);
 
   const checkSession = useCallback(async () => {
     if (status !== "authenticated" || !session) return;
@@ -30,14 +31,24 @@ export function useSessionCheck() {
   }, [session, status]);
 
   useEffect(() => {
-    // Check session immediately
-    checkSession();
+    if (status !== "authenticated") return;
 
-    // Check session every 2 minutes
+    // Delay first check by 3s to not block initial page load
+    const initialDelay = setTimeout(() => {
+      if (!hasChecked.current) {
+        hasChecked.current = true;
+        checkSession();
+      }
+    }, 3000);
+
+    // Then check every 2 minutes
     const interval = setInterval(checkSession, 120000);
 
-    return () => clearInterval(interval);
-  }, [checkSession]);
+    return () => {
+      clearTimeout(initialDelay);
+      clearInterval(interval);
+    };
+  }, [checkSession, status]);
 
   return { session, status };
 }

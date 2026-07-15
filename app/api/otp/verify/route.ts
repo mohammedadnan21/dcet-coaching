@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyOtpSchema } from "@/lib/validations";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDb } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = rateLimit(`otp-verify:${ip}`, 10, 60_000);
+    const { success } = await rateLimitDb(`otp-verify:${ip}`, 10, 60_000);
     if (!success) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again after a minute." },

@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { v4 as uuidv4 } from "uuid";
+import { rateLimitDb } from "./rate-limit";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,9 +19,15 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please provide email and password");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        // Fetch user + rate limit check in parallel (2 DB calls → 1 round-trip)
+        const [rateLimitResult, user] = await Promise.all([
+          rateLimitDb(`login:${credentials.email.toLowerCase()}`, 5, 300_000),
+          prisma.user.findUnique({ where: { email: credentials.email } }),
+        ]);
+
+        if (!rateLimitResult.success) {
+          throw new Error("Too many login attempts. Please try again after 5 minutes.");
+        }
 
         if (!user) {
           throw new Error("Invalid email or password");
@@ -50,8 +57,9 @@ export const authOptions: NextAuthOptions = {
         // Handle single device login
         const deviceId = credentials.deviceId || uuidv4();
         const token = uuidv4();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-        // Invalidate all previous sessions and clean up old ones
+        // Invalidate old sessions + create new one in parallel (3 DB calls → 1 round-trip)
         await Promise.all([
           prisma.deviceSession.updateMany({
             where: { userId: user.id, active: true },
@@ -66,26 +74,14 @@ export const authOptions: NextAuthOptions = {
               ],
             },
           }),
+          prisma.deviceSession.upsert({
+            where: {
+              userId_deviceId: { userId: user.id, deviceId: deviceId },
+            },
+            update: { token, active: true, expiresAt },
+            create: { userId: user.id, deviceId, token, active: true, expiresAt },
+          }),
         ]);
-
-        // Create new session (upsert to avoid unique constraint on same device)
-        await prisma.deviceSession.upsert({
-          where: {
-            userId_deviceId: { userId: user.id, deviceId: deviceId },
-          },
-          update: {
-            token: token,
-            active: true,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          },
-          create: {
-            userId: user.id,
-            deviceId: deviceId,
-            token: token,
-            active: true,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          },
-        });
 
         return {
           id: user.id,
