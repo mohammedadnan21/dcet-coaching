@@ -381,6 +381,14 @@ export async function DELETE(request: NextRequest) {
 
       await tx.payment.delete({ where: { id: paymentId } });
 
+      // If fee record has no more payments, delete it too
+      if (payment.feeRecordId) {
+        const remainingPayments = await tx.payment.count({ where: { feeRecordId: payment.feeRecordId } });
+        if (remainingPayments === 0) {
+          await tx.feeRecord.delete({ where: { id: payment.feeRecordId } });
+        }
+      }
+
       // Log deletion to Google Sheets
       syncPaymentToSheet({
         receiptNo: `${payment.receiptNo} (DELETED)`,
