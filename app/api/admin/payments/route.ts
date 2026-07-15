@@ -3,13 +3,13 @@ import { validateSessionWithRole } from "@/lib/validate-session";
 import { prisma } from "@/lib/db";
 import { syncPaymentToSheet } from "@/lib/google-sheets";
 
-async function generateReceiptNo(tx: { payment: { findFirst: Function } }): Promise<string> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function generateReceiptNo(tx: any): Promise<string> {
   const now = new Date();
   const year = now.getFullYear().toString().slice(-2);
   const month = (now.getMonth() + 1).toString().padStart(2, "0");
   const prefix = `WA${year}${month}-`;
 
-  // Get the latest receipt with this prefix to generate sequential number
   const latest = await tx.payment.findFirst({
     where: { receiptNo: { startsWith: prefix } },
     orderBy: { createdAt: "desc" },

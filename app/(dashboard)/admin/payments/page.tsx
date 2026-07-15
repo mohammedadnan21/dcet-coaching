@@ -166,6 +166,7 @@ export default function PaymentsPage() {
     try {
       const params = new URLSearchParams({
         search: query,
+        role: "STUDENT",
         page: "1",
         limit: "10",
       });

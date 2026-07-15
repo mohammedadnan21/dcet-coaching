@@ -16,6 +16,11 @@ export function useSessionCheck() {
       const data = await response.json();
 
       if (!data.valid) {
+        // Only sign out for definitive reasons, not transient errors
+        if (data.reason === "error") {
+          // Transient DB error — don't sign out, retry next poll
+          return;
+        }
         if (data.reason === "logged_out") {
           toast({
             title: "Logged Out",

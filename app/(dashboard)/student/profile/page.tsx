@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,6 +69,7 @@ interface FeeSummary {
 }
 
 export default function StudentProfilePage() {
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [feeRecords, setFeeRecords] = useState<FeeRecord[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -131,7 +133,7 @@ export default function StudentProfilePage() {
         <p className="text-stone-400 mt-1">Your account details and payment information</p>
       </div>
 
-      <Tabs defaultValue="info" className="space-y-4">
+      <Tabs defaultValue={searchParams.get("tab") || "info"} className="space-y-4">
         <TabsList className="bg-stone-900 border border-amber-900/15">
           <TabsTrigger value="info">Personal Info</TabsTrigger>
           <TabsTrigger value="fees">My Fees</TabsTrigger>
