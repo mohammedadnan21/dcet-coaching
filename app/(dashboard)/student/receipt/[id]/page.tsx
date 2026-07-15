@@ -262,20 +262,21 @@ export default function StudentReceiptPage() {
             size: A4;
             margin: 10mm;
           }
-          html, body {
+          html, body, #__next, main, div[class*="stone"],
+          div[class*="dark"], div[class*="dashboard"] {
             background: white !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             margin: 0 !important;
             padding: 0 !important;
           }
-          aside, nav, header, [class*="sidebar"], .print\\:hidden {
+          aside, nav, header, [class*="sidebar"], .print\\:hidden,
+          button[class*="chatbot"], div[class*="chatbot"] {
             display: none !important;
           }
           main {
-            margin: 0 !important;
-            padding: 0 !important;
             width: 100% !important;
+            min-height: 0 !important;
           }
         }
       `}</style>
