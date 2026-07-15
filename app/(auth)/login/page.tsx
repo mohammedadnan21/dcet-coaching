@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,19 @@ import { Logo } from "@/components/logo";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role) {
+      const role = session.user.role;
+      if (role === "ADMIN") router.replace("/admin");
+      else if (role === "TEACHER") router.replace("/teacher");
+      else router.replace("/student");
+    }
+  }, [status, session, router]);
 
   // Warm up DB while user types credentials
   useEffect(() => {
@@ -88,6 +99,15 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Don't show login form if already authenticated
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
+        <p className="text-stone-400">Redirecting to dashboard...</p>
+      </div>
+    );
+  }
 
   const roleIcons = {
     student: <GraduationCap className="w-5 h-5" />,
