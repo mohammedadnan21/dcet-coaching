@@ -350,7 +350,7 @@ export async function DELETE(request: NextRequest) {
     await prisma.$transaction(async (tx) => {
       const payment = await tx.payment.findUnique({
         where: { id: paymentId },
-        select: { id: true, amount: true, feeRecordId: true },
+        select: { id: true, amount: true, feeRecordId: true, receiptNo: true, studentName: true, studentPhone: true },
       });
 
       if (!payment) {
@@ -380,6 +380,23 @@ export async function DELETE(request: NextRequest) {
       }
 
       await tx.payment.delete({ where: { id: paymentId } });
+
+      // Log deletion to Google Sheets
+      syncPaymentToSheet({
+        receiptNo: `${payment.receiptNo} (DELETED)`,
+        studentName: payment.studentName,
+        studentPhone: payment.studentPhone,
+        amount: -payment.amount,
+        paymentMode: "DELETED",
+        purpose: "DELETED",
+        description: "Payment deleted by admin",
+        installmentNo: null,
+        totalFee: null,
+        paidSoFar: null,
+        remainingBalance: null,
+        recordedBy: session.user.name || "Admin",
+        paidAt: new Date().toISOString(),
+      }).catch(() => {});
     });
 
     return NextResponse.json({ message: "Payment deleted successfully" });
