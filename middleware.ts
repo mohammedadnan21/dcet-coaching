@@ -19,7 +19,8 @@ export default withAuth(
     }
 
     // Protect PDF books — only STUDENT or ADMIN with APPROVED status
-    if (pathname.startsWith("/books/")) {
+    // Skip webp images (served inside authenticated reader pages)
+    if (pathname.startsWith("/books/") && !pathname.endsWith(".webp")) {
       const role = token?.role as string;
       const status = token?.status as string;
       if (!["STUDENT", "ADMIN"].includes(role) || status !== "APPROVED") {
@@ -37,9 +38,12 @@ export default withAuth(
         if (
           pathname.startsWith("/admin") ||
           pathname.startsWith("/teacher") ||
-          pathname.startsWith("/student") ||
-          pathname.startsWith("/books/")
+          pathname.startsWith("/student")
         ) {
+          return !!token;
+        }
+
+        if (pathname.startsWith("/books/") && !pathname.endsWith(".webp")) {
           return !!token;
         }
 
